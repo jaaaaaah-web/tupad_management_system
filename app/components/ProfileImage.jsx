@@ -22,8 +22,13 @@ const ProfileImage = ({ src, alt, width = 50, height = 50, className }) => {
       return `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${Date.now()}`;
     }
     
-    // Otherwise, assume it's a filename and construct the path to uploads folder with cache busting
-    return `/uploads/${imageSrc}?t=${Date.now()}`;
+    // If it contains a file extension, it's likely a filename - add the /uploads/ prefix and cache buster
+    if (imageSrc.match(/\.(jpeg|jpg|png|gif|webp)$/i) || !imageSrc.includes('/')) {
+      return `/uploads/${imageSrc}?t=${Date.now()}`;
+    }
+    
+    // Otherwise, assume it's already a valid path and just add cache busting
+    return `${imageSrc}?t=${Date.now()}`;
   };
   
   // Set initial image source

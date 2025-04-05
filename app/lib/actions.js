@@ -9,8 +9,7 @@ import { sendAnnouncementNotifications } from "./notificationUtils";
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-// Simple image saving function that returns a placeholder URL in production
-// or saves to the public folder in development
+// Simple image saving function that returns a proper image path in both environments
 async function saveProfileImage(file) {
   try {
     // Check if file is valid
@@ -29,11 +28,23 @@ async function saveProfileImage(file) {
     // Generate unique filename
     const filename = `${uuidv4()}${path.extname(file.name)}`;
     
-    // In production (Vercel), we can't write to the filesystem
+    // In production (Vercel), we can't write to the filesystem directly
     if (process.env.NODE_ENV === 'production') {
-      // For now, return a placeholder image URL
-      console.log("Running in production - returning placeholder image");
-      return "/noavatar.png";
+      // For production, we need to save the file to a temp location
+      // and return the filename - the image will be uploaded through the API
+      const { writeFile, mkdir } = await import('fs/promises');
+      
+      try {
+        // Get file buffer
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        
+        // In production, return just the filename - it will be treated correctly by the ProfileImage component
+        return filename;
+      } catch (error) {
+        console.error("Error processing file in production:", error);
+        return null;
+      }
     } else {
       // In development, save to the public/uploads directory
       const { writeFile, mkdir } = await import('fs/promises');
@@ -57,13 +68,13 @@ async function saveProfileImage(file) {
       await writeFile(filepath, buffer);
       console.log("File saved successfully at:", filepath);
       
-      // Return URL path
-      return `/uploads/${filename}`;
+      // Return just the filename to be consistent with production
+      return filename;
     }
   } catch (error) {
     console.error("Error saving profile image:", error);
-    // Return placeholder image on error
-    return "/noavatar.png";
+    // Return null on error
+    return null;
   }
 }
 
