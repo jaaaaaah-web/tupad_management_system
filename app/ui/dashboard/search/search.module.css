@@ -13,3 +13,17 @@
   color: var(--textSoft);
   outline: none;
 }
+.searchButton {
+  background-color: var(--bg);
+  border: none;
+  padding: 8px 16px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.searchButton:hover {
+  background-color: #006d6d; /* darker teal for hover effect */
+}

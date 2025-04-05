@@ -230,6 +230,7 @@ const AdminsClientPage = () => {
                         className={styles.userImageSmall}
                         width={40}
                         height={40}
+                        key={`profile-${admin.id || admin._id}-${retryCount}`}
                       />
                     </div>
                   </td>

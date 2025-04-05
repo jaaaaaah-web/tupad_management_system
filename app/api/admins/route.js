@@ -89,8 +89,20 @@ export async function GET(request) {
     // Convert to plain objects for serialization
     try {
       const serializedAdmins = JSON.parse(JSON.stringify(admins));
+      
+      // Process each admin record to ensure image paths are properly formatted
+      const processedAdmins = serializedAdmins.map(admin => {
+        // Make sure we have admin._id as admin.id for consistency
+        if (admin._id && !admin.id) {
+          admin.id = admin._id.toString();
+        }
+        
+        // Return the processed admin object
+        return admin;
+      });
+      
       return NextResponse.json({ 
-        admins: serializedAdmins, 
+        admins: processedAdmins, 
         count: count 
       });
     } catch (serializationError) {
