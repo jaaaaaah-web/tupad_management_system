@@ -16,6 +16,8 @@ export const connectToDB = async () => {
       maxPoolSize: 10, // Keep up to 10 connections in the pool
       serverSelectionTimeoutMS: 5000, // Give up initial connection after 5 seconds
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      bufferCommands: false, // Disable buffering for better error handling
+      retryWrites: true, // Enable retry for writes
     };
 
     // Make sure we have a MongoDB URI
@@ -50,15 +52,31 @@ export const connectToDB = async () => {
       // Continue with original URI if parsing fails
     }
 
-    // Connect to the database
-    const db = await mongoose.connect(mongoUri, mongooseOptions);
-    
-    // Update the connection state
-    connection.isConnected = db.connections[0].readyState;
-    console.log("Database connected successfully");
+    // Connect to the database with retry logic
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        // Connect to the database
+        const db = await mongoose.connect(mongoUri, mongooseOptions);
+        
+        // Update the connection state
+        connection.isConnected = db.connections[0].readyState;
+        console.log("Database connected successfully");
+        return;
+      } catch (connectionError) {
+        retries--;
+        if (retries === 0) {
+          throw connectionError; // Rethrow if all retries failed
+        }
+        console.warn(`Database connection attempt failed, retrying... (${retries} attempts left)`);
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   } catch (error) {
     console.error("Database connection error:", error.message);
-    throw new Error(`Database connection failed: ${error.message}`);
+    // Return a failed connection instead of throwing, to avoid crashing the app
+    connection.isConnected = false;
   }
 };
 

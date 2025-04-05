@@ -269,6 +269,13 @@ export const fetchAdmins = async (q, page, sort, direction, rowCount = "all") =>
 
   try {
     await connectToDB(); // Ensure DB is connected
+    
+    // Verify that the Admins model is properly initialized
+    if (!Admins.collection) {
+      console.error("Admins collection is not initialized properly");
+      return { count: 0, admins: [] }; // Return empty results instead of crashing
+    }
+    
     const count = await Admins.countDocuments({ 
       $or: [
         { username: { $regex: regex } },
