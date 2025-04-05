@@ -1,0 +1,44 @@
+.container{
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+
+}
+.inputGroup {
+  display: flex;
+  border: 2px solid rgb(171, 164, 164);
+  margin-bottom: 30px;
+  border-radius: 5px;
+}
+
+.dateAndButton {
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  
+}
+
+.transparentInput {
+  background-color: transparent;
+  color: white;
+  padding: 8px;
+  width: 100%;
+  font-size: 16px;
+}
+
+.descriptionTextarea {
+  background-color: transparent;
+  color: white;
+  padding: 8px;
+  font-size: 16px;
+  width: 100%;
+}
+
+.form button{
+  padding: 30px;
+  background-color: teal;
+  color: var(--text);
+  border: 2px solid rgb(171, 164, 164);
+  cursor: pointer;
+}

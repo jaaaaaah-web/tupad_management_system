@@ -1,0 +1,228 @@
+.imageUpload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.imagePreview {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: 3px solid #ccc;
+  position: relative;
+  margin-bottom: 15px;
+  background-color: #f5f5f5;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePreview.error {
+  border-color: #d32f2f;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+.imagePreview.valid {
+  border-color: #4caf50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.imagePreview.invalid {
+  border-color: #d32f2f;
+}
+
+.placeholder {
+  color: #666;
+  text-align: center;
+  padding: 10px;
+}
+
+.fileInput {
+  display: none;
+}
+
+/* Button group for the two buttons */
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.uploadButton, .cameraButton {
+  background-color: #1e5d6e;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-weight: bold;
+}
+
+.cameraButton {
+  background-color: #2e7d32;
+}
+
+.cameraButton:hover {
+  background-color: #1b5e20;
+}
+
+.uploadButton:hover {
+  background-color: #0e3d4e;
+}
+
+.uploadButton:disabled, .cameraButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.validationMessage {
+  margin: 10px 0;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  min-height: 20px;
+  max-width: 300px;
+}
+
+.validationMessage.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.validationMessage.error {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.processing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.processing span {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s linear infinite;
+}
+
+.smallSpinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border-left-color: white;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorMessage {
+  color: #d32f2f;
+  background-color: #ffebee;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Camera related styles */
+.cameraContainer {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.cameraVideo {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 8px;
+  border: 3px solid #ccc;
+  background-color: #000;
+}
+
+.hiddenCanvas {
+  display: none;
+}
+
+.cameraControls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.captureButton {
+  background-color: #d32f2f;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.captureButton:hover {
+  background-color: #b71c1c;
+}
+
+.captureButton.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background-color: #757575;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cancelButton:hover {
+  background-color: #616161;
+}

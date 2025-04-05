@@ -1,0 +1,131 @@
+.container {
+  width: 100%;
+  height: 100vh;
+  background-color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form {
+  background-color: var(--bgSoft);
+  padding: 40px;
+  border-radius: 12px;
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form h1 {
+  color: white;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.form input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid white;
+  border-radius: 5px;
+  background-color: var(--bgSoft);
+  color: white;
+  font-size: 16px;
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 12px;
+  padding-right: 50px; /* Space for the button */
+  border: 2px solid white;
+  border-radius: 5px;
+  background-color: var(--bgSoft);
+  color: white;
+  font-size: 16px;
+}
+
+.togglePasswordBtn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 5px;
+}
+
+.form button {
+  width: 100%;
+  padding: 12px;
+  background-color: teal;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.form button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+.captchaContainer {
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.lockedMessage {
+  text-align: center;
+  color: #b91c1c;
+  background-color: #fee2e2;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.error {
+  color: #b91c1c;
+  text-align: center;
+  font-size: 14px;
+}
+
+.warningMessage {
+  background-color: var(--bgSoft);
+  color: white;
+  border: black 1px solid;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+}
+
+.warningIcon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+.passwordContainer {
+  position: relative;
+  width: 100%;
+}
+.togglePasswordBtn:hover {
+  color: lightgray;
+}
+.form .togglePasswordBtn {
+  width: auto;
+  padding: 5px 10px;
+  background: none;
+  border: none;
+  color: white;
+}

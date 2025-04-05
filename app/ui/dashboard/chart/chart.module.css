@@ -1,0 +1,58 @@
+.container {
+  height: 450px;
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 200;
+  color: var(--textSoft);
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.chartDescription {
+  text-align: center;
+  color: var(--textSoft);
+  font-size: 14px;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+/* Tooltip styling */
+.tooltip {
+  /* Changed background color from black to green */
+  background-color: var(--bg); /* <-- this was black before */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  min-width: 170px;
+}
+
+
+.tooltipHeader {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltipTotal {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.tooltipDetails {
+  margin-top: 5px;
+}
+
+.tooltipDetails p {
+  margin: 3px 0;
+  font-size: 12px;
+}

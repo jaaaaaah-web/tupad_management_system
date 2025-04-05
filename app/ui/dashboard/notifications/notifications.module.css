@@ -1,0 +1,75 @@
+.container {
+  padding: 20px;
+}
+
+.title {
+  margin-bottom: 20px;
+  color: var(--textSoft);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.header h3 {
+  color: var(--textSoft);
+  margin: 0;
+}
+
+.date {
+  font-size: 12px;
+  color: var(--textSoft);
+}
+
+.recipient {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.message {
+  padding: 10px;
+  background-color: #303847;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.status {
+  font-size: 14px;
+}
+
+.sent {
+  color: green;
+}
+
+.pending {
+  color: orange;
+}
+
+.failed {
+  color: crimson;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px;
+  color: var(--textSoft);
+}

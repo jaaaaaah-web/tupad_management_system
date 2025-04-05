@@ -1,0 +1,62 @@
+.container{
+  position: sticky;
+  top: 40px;
+}
+.user{
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.userImageContainer {
+  display: flex;
+  align-items: center;
+  margin-right: 12px;
+}
+.userImage{
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bgSoft);
+}
+.UserDetail{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.username{
+  font-weight: 500;
+}
+.userTitle{
+  font-size: 12px;
+}
+.hayop{
+  list-style: none;
+}
+
+.cat{
+  color: var(--textSoft);
+  font-weight: bold;
+  font-size: 13px;
+  margin: 10px 0px;
+}
+
+.logout{
+  padding:20px;
+  margin: 5px 0px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 10px;
+  background: none;
+  border: none;
+  width: 100%;
+  color: white;
+}
+.logout:hover{
+  background-color: var(--bg);
+}

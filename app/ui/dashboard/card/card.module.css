@@ -1,0 +1,62 @@
+.container{
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+.container:hover{
+  background-color: rgb(14, 42, 24);
+}
+
+.yearFilterContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 5px;
+}
+
+.yearFilter {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.yearFilter:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.cardContent {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.text{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.number{
+  font-size: 24px;
+  font-weight: 500;
+}
+.detail{
+  font-size: 14px;
+  font-weight: 300;
+}
+.positive{
+  color: lime;
+}
+.negative{
+  color: red;
+}
+.yearFilter option {
+  background-color: var(--bgSoft);
+}

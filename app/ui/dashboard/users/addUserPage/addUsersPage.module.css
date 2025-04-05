@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: flex-start;
+  padding: 20px;
+  background-color: var(--bgSoft);
+  border-radius: 10px;
+}
+
+.formContainer {
+  flex: 1;
+  width: 100%;
+  padding: 5px;
+  color: white;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.row div {
+  display: flex;
+  flex-direction: column;
+}
+
+.row label {
+  margin-bottom: 5px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.transparentInput {
+  background-color: var(--bgSoft);
+  border: 2px solid white;
+  border-radius: 5px;
+  padding: 10px;
+  color: white;
+  width: 100%;
+  font-size: 16px;
+}
+
+.form button {
+  width: 100%;
+  padding: 10px;
+  background-color: teal;
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}

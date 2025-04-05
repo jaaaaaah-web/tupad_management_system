@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  background-color: var(--bgSoft);
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.select {
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.directionButton {
+  background-color: var(--bg);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.directionButton:hover {
+  background-color: #f0f0f0;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+}
+
+.select option {
+  background-color: var(--bg);
+  color: white;
+}
+.controlGroup select{
+  background-color: var(--bg);
+  color: white;
+  border: none;
+}

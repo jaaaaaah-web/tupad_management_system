@@ -5,16 +5,38 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "cross-env ANALYZE=true next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pre-deploy-check": "node pre-deploy-check.js"
   },
   "dependencies": {
     "@next/eslint-plugin-next": "14.0.1",
-    "next": "14.0.1",
+    "@sendgrid/mail": "^8.1.4",
+    "@tensorflow-models/blazeface": "^0.1.0",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
+    "crypto": "^1.0.1",
+    "face-api.js": "^0.22.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.11.0",
+    "next": "^14.2.24",
+    "next-auth": "^5.0.0-beta.3",
+    "nodemailer": "^6.10.0",
     "react": "18",
-    "react-dom": "18"
+    "react-dom": "18",
+    "react-google-recaptcha": "^3.1.0",
+    "react-icons": "^5.5.0",
+    "react-image-file-resizer": "^0.4.8",
+    "recharts": "^2.15.1",
+    "twilio": "^5.5.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.2.26",
+    "cross-env": "^7.0.3",
     "eslint": "8",
     "eslint-config-next": "14.0.1"
   }

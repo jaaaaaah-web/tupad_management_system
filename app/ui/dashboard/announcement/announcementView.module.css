@@ -1,0 +1,47 @@
+.container {
+  padding: 20px;
+  background-color: var(--bgSoft);
+  border-radius: 10px;
+}
+
+.title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: var(--textSoft);
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--textSoft);
+  margin-bottom: 30px;
+}
+
+.content {
+  line-height: 1.6;
+  margin-bottom: 30px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.actions {
+  margin-top: 30px;
+}
+
+.notifyButton {
+  padding: 10px 20px;
+  background-color: teal;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.error {
+  color: crimson;
+  font-size: 18px;
+  text-align: center;
+  margin-top: 50px;
+}
