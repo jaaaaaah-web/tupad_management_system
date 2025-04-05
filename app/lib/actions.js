@@ -6,12 +6,11 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { sendAnnouncementNotifications } from "./notificationUtils";
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { put } from '@vercel/blob';
 
-// Updated image saving function with better error handling
+// Updated image saving function using Vercel Blob Storage
 async function saveProfileImage(file) {
   try {
     // Check if file is valid
@@ -27,28 +26,19 @@ async function saveProfileImage(file) {
       size: file.size
     });
     
-    // Get file buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
     // Generate unique filename
     const filename = `${uuidv4()}${path.extname(file.name)}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     
-    // Create uploads directory if it doesn't exist
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-      console.log("Created uploads directory:", uploadDir);
-    }
+    // Upload file to Vercel Blob Storage
+    const { url } = await put(filename, file, {
+      access: 'public',
+      addRandomSuffix: false, // Keep exact filename we generated
+    });
     
-    const filepath = path.join(uploadDir, filename);
+    console.log("File uploaded successfully to Vercel Blob Storage:", url);
     
-    // Save file to disk
-    await writeFile(filepath, buffer);
-    console.log("File saved successfully at:", filepath);
-    
-    // Return URL path
-    return `/uploads/${filename}`;
+    // Return the full URL
+    return url;
   } catch (error) {
     console.error("Error saving profile image:", error);
     throw error;
