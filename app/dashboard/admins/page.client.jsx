@@ -14,6 +14,8 @@ const AdminsClientPage = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errorDetails, setErrorDetails] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -38,24 +40,30 @@ const AdminsClientPage = () => {
       setLoading(true);
       try {
         // Use the API endpoint created earlier
-        const res = await fetch('/api/admins');
-        if (!res.ok) {
-          throw new Error('Failed to fetch admin data');
-        }
+        const res = await fetch(`/api/admins?timestamp=${new Date().getTime()}`);
+        
+        // Get the response data
         const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to fetch admin data');
+        }
+        
         setAdmins(data.admins || []);
         setCount(data.count || 0);
         setError(null);
+        setErrorDetails(null);
       } catch (err) {
         console.error('Error fetching admins:', err);
         setError('Failed to load admin data. Please try refreshing the page.');
+        setErrorDetails(err.message);
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [q, page, sort, direction, rowCount]);
+  }, [q, page, sort, direction, rowCount, retryCount]);
 
   // Handle admin deletion
   const handleDelete = async (id) => {
@@ -111,13 +119,37 @@ const AdminsClientPage = () => {
     }
   };
 
+  // Add a method to retry fetching data
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+  };
+
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>
-          <h3>Error</h3>
+        <div className={styles.errorContainer || styles.error}>
+          <h3>Error Loading Admin Data</h3>
           <p>{error}</p>
-          <button onClick={() => router.refresh()}>Try Again</button>
+          {errorDetails && (
+            <details>
+              <summary>Technical Details</summary>
+              <pre>{errorDetails}</pre>
+            </details>
+          )}
+          <div className={styles.errorActions}>
+            <button 
+              className={styles.retryButton} 
+              onClick={handleRetry}
+            >
+              Try Again
+            </button>
+            <button 
+              className={styles.dashboardButton} 
+              onClick={() => router.push('/dashboard')}
+            >
+              Return to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -142,7 +174,10 @@ const AdminsClientPage = () => {
       </div>
       
       {loading ? (
-        <div className={styles.loading}>Loading admin data...</div>
+        <div className={styles.loading}>
+          <p>Loading admin data...</p>
+          <div className={styles.loadingSpinner}></div>
+        </div>
       ) : (
         <table className={styles.table}>
           <thead>
