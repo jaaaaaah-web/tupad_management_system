@@ -8,9 +8,9 @@ import { cookies } from "next/headers";
 import { sendAnnouncementNotifications } from "./notificationUtils";
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { put } from '@vercel/blob';
 
-// Updated image saving function using Vercel Blob Storage
+// Simple image saving function that returns a placeholder URL in production
+// or saves to the public folder in development
 async function saveProfileImage(file) {
   try {
     // Check if file is valid
@@ -29,19 +29,41 @@ async function saveProfileImage(file) {
     // Generate unique filename
     const filename = `${uuidv4()}${path.extname(file.name)}`;
     
-    // Upload file to Vercel Blob Storage
-    const { url } = await put(filename, file, {
-      access: 'public',
-      addRandomSuffix: false, // Keep exact filename we generated
-    });
-    
-    console.log("File uploaded successfully to Vercel Blob Storage:", url);
-    
-    // Return the full URL
-    return url;
+    // In production (Vercel), we can't write to the filesystem
+    if (process.env.NODE_ENV === 'production') {
+      // For now, return a placeholder image URL
+      console.log("Running in production - returning placeholder image");
+      return "/noavatar.png";
+    } else {
+      // In development, save to the public/uploads directory
+      const { writeFile, mkdir } = await import('fs/promises');
+      const { existsSync } = await import('fs');
+      
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+      
+      // Create uploads directory if it doesn't exist
+      if (!existsSync(uploadDir)) {
+        await mkdir(uploadDir, { recursive: true });
+        console.log("Created uploads directory:", uploadDir);
+      }
+      
+      const filepath = path.join(uploadDir, filename);
+      
+      // Get file buffer
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
+      // Save file to disk
+      await writeFile(filepath, buffer);
+      console.log("File saved successfully at:", filepath);
+      
+      // Return URL path
+      return `/uploads/${filename}`;
+    }
   } catch (error) {
     console.error("Error saving profile image:", error);
-    throw error;
+    // Return placeholder image on error
+    return "/noavatar.png";
   }
 }
 
