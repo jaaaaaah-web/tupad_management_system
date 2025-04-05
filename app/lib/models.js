@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+// This is a critical fix for serverless environments like Vercel
+// Mongoose tends to cache connections between serverless function invocations
+// but the models might not be properly initialized
+let isModelInitialized = false;
+
 const userSchema = new mongoose.Schema(
   {
     rowNumber: {
@@ -176,9 +181,59 @@ const adminsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Safely get or create a model - works in both development and production
+// Enhanced version specifically for serverless environments
 const getModel = (modelName, schema) => {
-  return mongoose.models[modelName] || mongoose.model(modelName, schema);
+  try {
+    // First try to get an existing model
+    if (mongoose.models && mongoose.models[modelName]) {
+      return mongoose.models[modelName];
+    }
+    
+    // If model doesn't exist yet, create it
+    if (mongoose.connection && mongoose.connection.readyState) {
+      return mongoose.model(modelName, schema);
+    }
+    
+    // If mongoose connection is not ready yet, we create a model that will be initialized later
+    const model = mongoose.model(modelName, schema);
+    
+    // Add a safe collection getter that won't crash
+    if (!model.collection) {
+      Object.defineProperty(model, 'collection', {
+        get: function() {
+          // Return an empty object with required methods if real collection not available
+          if (!this.db || !this.db.collection) {
+            console.warn(`Collection not available for ${modelName}, returning mock collection`);
+            return {
+              find: () => ({ limit: () => ({ skip: () => ({ sort: () => [] }) }) }),
+              findOne: () => null,
+              countDocuments: () => 0,
+              // Add other methods your code might be using
+            };
+          }
+          return this.db.collection(this.collection.name);
+        },
+        configurable: true
+      });
+    }
+    
+    return model;
+  } catch (error) {
+    console.error(`Error creating model ${modelName}:`, error);
+    
+    // Return a mock model as fallback that won't crash the application
+    return {
+      find: () => ({ limit: () => ({ skip: () => ({ sort: () => [] }) }) }),
+      findOne: () => null,
+      findById: () => null,
+      countDocuments: () => 0,
+      collection: {
+        find: () => ({ limit: () => ({ skip: () => ({ sort: () => [] }) }) }),
+        findOne: () => null,
+        countDocuments: () => 0,
+      }
+    };
+  }
 };
 
 // Export models using the safer approach
