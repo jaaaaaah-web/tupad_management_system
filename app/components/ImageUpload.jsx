@@ -38,7 +38,17 @@ export default function ImageUpload({ onImageSelected, initialImage }) {
     
     // Set initial image if provided
     if (initialImage) {
-      setPreviewUrl(initialImage);
+      // Add cache busting to initial image if it's a path and not a blob
+      if (initialImage && !initialImage.startsWith('blob:')) {
+        const timestamp = Date.now();
+        // Add timestamp to image URL to prevent caching
+        const imageWithTimestamp = initialImage.includes('?') 
+          ? `${initialImage}&t=${timestamp}` 
+          : `${initialImage}?t=${timestamp}`;
+        setPreviewUrl(imageWithTimestamp);
+      } else {
+        setPreviewUrl(initialImage);
+      }
       setIsValid(true); // Assume existing images are valid
     }
     
@@ -49,8 +59,9 @@ export default function ImageUpload({ onImageSelected, initialImage }) {
       }
       stopCamera();
     };
-  }, [initialImage, previewUrl]); // Added previewUrl as a dependency
+  }, [initialImage]);
 
+  // Handle image upload
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -179,9 +190,13 @@ export default function ImageUpload({ onImageSelected, initialImage }) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
+      // Generate a unique filename with timestamp for cache-busting
+      const timestamp = Date.now();
+      const fileName = `webcam-photo-${timestamp}.jpg`;
+      
       // Convert canvas to blob
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
-      const file = new File([blob], "webcam-photo.jpg", { type: "image/jpeg" });
+      const file = new File([blob], fileName, { type: "image/jpeg" });
       
       // Create preview URL
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -241,6 +256,7 @@ export default function ImageUpload({ onImageSelected, initialImage }) {
                 fill 
                 style={{objectFit: 'cover'}}
                 sizes="(max-width: 768px) 100vw, 300px"
+                unoptimized={true} /* Skip Next.js image optimization for dynamic images */
               />
             ) : (
               <div className={styles.placeholder}>

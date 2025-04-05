@@ -69,6 +69,7 @@ const AdminsClientPage = () => {
         if (page) queryParams.set('page', page);
         if (sort) queryParams.set('sort', sort);
         if (direction) queryParams.set('direction', direction);
+        if (rowCount) queryParams.set('rowCount', rowCount);  // Add rowCount parameter
         
         // Use the API endpoint with proper query parameters
         const res = await fetch(`/api/admins?${queryParams.toString()}&timestamp=${new Date().getTime()}`);
@@ -94,7 +95,7 @@ const AdminsClientPage = () => {
     };
     
     fetchData();
-  }, [q, page, sort, direction, retryCount]);
+  }, [q, page, sort, direction, rowCount, retryCount]);
 
   // Handle admin deletion
   const handleDelete = async (id) => {

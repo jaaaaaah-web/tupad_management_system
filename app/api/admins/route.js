@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/app/lib/utils';
 import { Admins } from '@/app/lib/models';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth';
+import { auth } from '@/app/auth';
 
 export async function GET(request) {
   try {
@@ -13,10 +12,9 @@ export async function GET(request) {
     const sort = url.searchParams.get('sort') || 'createdAt';
     const direction = url.searchParams.get('direction') || 'desc';
     
-    // Check authentication
-    let session;
+    // Check authentication using the auth() method from NextAuth
     try {
-      session = await getServerSession(authOptions);
+      const session = await auth();
       if (!session || !session.user) {
         console.log('API: No valid session found');
         return NextResponse.json({ error: 'Unauthorized', details: 'No valid session' }, { status: 401 });
@@ -86,18 +84,25 @@ export async function GET(request) {
       }, { status: 500 });
     }
     
-    // Convert to plain objects for serialization
+    // Convert to plain objects for serialization and add image URL processing
     try {
       const serializedAdmins = JSON.parse(JSON.stringify(admins));
       
-      // Process each admin record to ensure image paths are properly formatted
+      // Process each admin record to ensure proper formatting
       const processedAdmins = serializedAdmins.map(admin => {
         // Make sure we have admin._id as admin.id for consistency
         if (admin._id && !admin.id) {
           admin.id = admin._id.toString();
         }
         
-        // Return the processed admin object
+        // Add a timestamp to the profileImage to bust the cache
+        if (admin.profileImage) {
+          // Clean the image path to just the filename if it has a path
+          const imageName = admin.profileImage.split('/').pop();
+          // Set full path with timestamp to prevent caching
+          admin.profileImage = imageName ? `/uploads/${imageName}?t=${Date.now()}` : null;
+        }
+        
         return admin;
       });
       
