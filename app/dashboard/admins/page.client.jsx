@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from "@/app/ui/dashboard/admins/admins.module.css";
 import Search from "@/app/ui/dashboard/search/search";
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Link from "next/link";
 import ProfileImage from "@/app/components/ProfileImage";
 import TableControls from "@/app/components/TableControls/TableControls";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 const AdminsClientPage = () => {
   const [admins, setAdmins] = useState([]);
@@ -17,14 +17,15 @@ const AdminsClientPage = () => {
   const [errorDetails, setErrorDetails] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   
   // Get search parameters
   const q = searchParams.get('q') || '';
   const page = searchParams.get('page') || 1;
-  const sort = searchParams.get('sort') || '';
-  const direction = searchParams.get('direction') || 'asc';
-  const rowCount = searchParams.get('rowCount') || 'all';
+  const sort = searchParams.get('sort') || 'createdAt';
+  const direction = searchParams.get('direction') || 'desc';
+  const rowCount = searchParams.get('rowCount') || '10';
 
   // Define sort options for the table
   const sortOptions = [
@@ -34,13 +35,43 @@ const AdminsClientPage = () => {
     { value: "createdAt", label: "Created At" }
   ];
 
+  // Create a function to update search params and navigate
+  const createQueryString = useCallback(
+    (name, value) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+      return params.toString();
+    },
+    [searchParams]
+  );
+
+  // Handle search submission
+  const handleSearch = (searchTerm) => {
+    // Reset to page 1 when searching
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set('q', searchTerm);
+    newParams.set('page', '1');
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
   // Fetch admins data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Use the API endpoint created earlier
-        const res = await fetch(`/api/admins?timestamp=${new Date().getTime()}`);
+        // Build query string
+        const queryParams = new URLSearchParams();
+        if (q) queryParams.set('q', q);
+        if (page) queryParams.set('page', page);
+        if (sort) queryParams.set('sort', sort);
+        if (direction) queryParams.set('direction', direction);
+        
+        // Use the API endpoint with proper query parameters
+        const res = await fetch(`/api/admins?${queryParams.toString()}&timestamp=${new Date().getTime()}`);
         
         // Get the response data
         const data = await res.json();
@@ -63,7 +94,7 @@ const AdminsClientPage = () => {
     };
     
     fetchData();
-  }, [q, page, sort, direction, rowCount, retryCount]);
+  }, [q, page, sort, direction, retryCount]);
 
   // Handle admin deletion
   const handleDelete = async (id) => {
@@ -81,9 +112,8 @@ const AdminsClientPage = () => {
           throw new Error('Failed to delete admin');
         }
         
-        // Refresh the data
-        setAdmins(admins.filter(admin => (admin.id || admin._id) !== id));
-        setCount(prev => prev - 1);
+        // Refresh the data by incrementing retry count to trigger a refetch
+        setRetryCount(prev => prev + 1);
       } catch (err) {
         console.error('Error deleting admin:', err);
         alert('Failed to delete admin. Please try again.');
@@ -106,13 +136,8 @@ const AdminsClientPage = () => {
         throw new Error('Failed to unlock admin account');
       }
       
-      // Update the admin in the list
-      setAdmins(admins.map(admin => {
-        if ((admin.id || admin._id) === id) {
-          return { ...admin, accountLocked: false };
-        }
-        return admin;
-      }));
+      // Refresh data instead of just updating local state
+      setRetryCount(prev => prev + 1);
     } catch (err) {
       console.error('Error unlocking admin account:', err);
       alert('Failed to unlock admin account. Please try again.');
@@ -158,7 +183,7 @@ const AdminsClientPage = () => {
   return (
     <div className={styles.container}>
       <div className={styles.top}>
-        <Search placeholder="Search for admins..." />
+        <Search placeholder="Search for admins..." onSearch={handleSearch} defaultValue={q} />
         <Link href="/dashboard/admins/add">
           <button className={styles.addButton}>Add New Admin</button>
         </Link>
@@ -168,8 +193,9 @@ const AdminsClientPage = () => {
       <div className={styles.controls}>
         <TableControls 
           sortOptions={sortOptions}
-          defaultSort="createdAt"
-          defaultRowCount="all"
+          defaultSort={sort || "createdAt"}
+          defaultDirection={direction || "desc"}
+          defaultRowCount={rowCount || "10"}
         />
       </div>
       
@@ -201,7 +227,9 @@ const AdminsClientPage = () => {
                       <ProfileImage
                         src={admin.profileImage}
                         alt={admin.username}
-                        className={styles.userImage}
+                        className={styles.userImageSmall}
+                        width={40}
+                        height={40}
                       />
                     </div>
                   </td>

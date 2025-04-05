@@ -43,6 +43,15 @@ cursor: pointer;
   border-radius: 50%;
   object-fit: cover;
 }
+
+/* Add a new class for smaller user images in tables */
+.userImageSmall {
+  border-radius: 50%;
+  object-fit: cover;
+  width: 40px;
+  height: 40px;
+}
+
 .buttons{
   display: flex;
   gap: 10px;

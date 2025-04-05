@@ -6,6 +6,13 @@ import { authOptions } from '@/app/auth';
 
 export async function GET(request) {
   try {
+    // Get search parameters from URL
+    const url = new URL(request.url);
+    const q = url.searchParams.get('q') || '';
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const sort = url.searchParams.get('sort') || 'createdAt';
+    const direction = url.searchParams.get('direction') || 'desc';
+    
     // Check authentication
     let session;
     try {
@@ -40,19 +47,37 @@ export async function GET(request) {
       }, { status: 500 });
     }
 
-    // Try a simpler query first to test if the collection is working
-    try {
-      const testAdmin = await Admins.findOne({});
-      console.log('API: Test query successful:', !!testAdmin);
-    } catch (testError) {
-      console.error('API: Test query failed:', testError);
-    }
+    // Create filter based on search query
+    const filter = q ? {
+      $or: [
+        { username: { $regex: q, $options: 'i' } },
+        { email: { $regex: q, $options: 'i' } },
+        { name: { $regex: q, $options: 'i' } }
+      ]
+    } : {};
 
-    // Fetch all admins with a try/catch specifically for the query
+    // Create sort object
+    const sortOption = {};
+    sortOption[sort] = direction === 'asc' ? 1 : -1;
+
+    // Calculate pagination
+    const ITEMS_PER_PAGE = 10;
+    const skip = (page - 1) * ITEMS_PER_PAGE;
+
+    // Fetch all admins with search, sort and pagination
     let admins = [];
+    let count = 0;
     try {
-      admins = await Admins.find({}).sort({ createdAt: -1 });
-      console.log(`API: Successfully found ${admins.length} admins`);
+      // Count total matching documents for pagination
+      count = await Admins.countDocuments(filter);
+      
+      // Execute the main query with all filters and options
+      admins = await Admins.find(filter)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(ITEMS_PER_PAGE);
+        
+      console.log(`API: Successfully found ${admins.length} admins out of ${count} total`);
     } catch (queryError) {
       console.error('API: Error querying admins:', queryError);
       return NextResponse.json({ 
@@ -66,7 +91,7 @@ export async function GET(request) {
       const serializedAdmins = JSON.parse(JSON.stringify(admins));
       return NextResponse.json({ 
         admins: serializedAdmins, 
-        count: serializedAdmins.length 
+        count: count 
       });
     } catch (serializationError) {
       console.error('API: Error serializing admins:', serializationError);
