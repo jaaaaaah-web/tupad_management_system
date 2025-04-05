@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/app/lib/utils';
 import { Admins } from '@/app/lib/models';
-import { auth } from '@/app/auth';
+import { cookies } from 'next/headers';
 
 export async function GET(request) {
   try {
@@ -11,17 +11,13 @@ export async function GET(request) {
     const page = parseInt(url.searchParams.get('page') || '1');
     const sort = url.searchParams.get('sort') || 'createdAt';
     const direction = url.searchParams.get('direction') || 'desc';
+    const rowCount = parseInt(url.searchParams.get('rowCount') || '10');
     
-    // Check authentication using the auth() method from NextAuth
-    try {
-      const session = await auth();
-      if (!session || !session.user) {
-        console.log('API: No valid session found');
-        return NextResponse.json({ error: 'Unauthorized', details: 'No valid session' }, { status: 401 });
-      }
-    } catch (sessionError) {
-      console.error('API: Error checking session:', sessionError);
-      // Continue without session check in case that's what's failing
+    // Check authentication using cookies instead of auth() which is causing issues
+    const adminId = cookies().get("auth-token")?.value;
+    if (!adminId) {
+      console.log('API: No valid auth-token found');
+      return NextResponse.json({ error: 'Unauthorized', details: 'No valid session' }, { status: 401 });
     }
 
     // Connect to database with detailed error logging
@@ -45,6 +41,12 @@ export async function GET(request) {
       }, { status: 500 });
     }
 
+    // Verify the requesting admin
+    const requestingAdmin = await Admins.findById(adminId);
+    if (!requestingAdmin) {
+      return NextResponse.json({ error: 'Admin not found' }, { status: 401 });
+    }
+
     // Create filter based on search query
     const filter = q ? {
       $or: [
@@ -59,7 +61,7 @@ export async function GET(request) {
     sortOption[sort] = direction === 'asc' ? 1 : -1;
 
     // Calculate pagination
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = rowCount;
     const skip = (page - 1) * ITEMS_PER_PAGE;
 
     // Fetch all admins with search, sort and pagination

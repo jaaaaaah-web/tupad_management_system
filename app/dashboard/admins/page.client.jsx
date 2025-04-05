@@ -58,6 +58,16 @@ const AdminsClientPage = () => {
     router.push(`${pathname}?${newParams.toString()}`);
   };
 
+  // Check if we need to redirect to login
+  const handleAuthError = useCallback((status) => {
+    if (status === 401) {
+      // Redirect to login page if unauthorized
+      router.push('/login?redirect=' + encodeURIComponent(pathname + '?' + searchParams.toString()));
+      return true;
+    }
+    return false;
+  }, [router, pathname, searchParams]);
+
   // Fetch admins data
   useEffect(() => {
     const fetchData = async () => {
@@ -69,10 +79,19 @@ const AdminsClientPage = () => {
         if (page) queryParams.set('page', page);
         if (sort) queryParams.set('sort', sort);
         if (direction) queryParams.set('direction', direction);
-        if (rowCount) queryParams.set('rowCount', rowCount);  // Add rowCount parameter
+        if (rowCount) queryParams.set('rowCount', rowCount);
         
         // Use the API endpoint with proper query parameters
-        const res = await fetch(`/api/admins?${queryParams.toString()}&timestamp=${new Date().getTime()}`);
+        const res = await fetch(`/api/admins?${queryParams.toString()}&timestamp=${new Date().getTime()}`, {
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        // Check if we got an unauthorized response
+        if (res.status === 401) {
+          if (handleAuthError(401)) return;
+        }
         
         // Get the response data
         const data = await res.json();
@@ -95,7 +114,7 @@ const AdminsClientPage = () => {
     };
     
     fetchData();
-  }, [q, page, sort, direction, rowCount, retryCount]);
+  }, [q, page, sort, direction, rowCount, retryCount, handleAuthError]);
 
   // Handle admin deletion
   const handleDelete = async (id) => {
@@ -109,8 +128,14 @@ const AdminsClientPage = () => {
           body: formData,
         });
         
+        // Check if unauthorized
+        if (res.status === 401) {
+          if (handleAuthError(401)) return;
+        }
+        
         if (!res.ok) {
-          throw new Error('Failed to delete admin');
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to delete admin');
         }
         
         // Refresh the data by incrementing retry count to trigger a refetch
@@ -133,8 +158,14 @@ const AdminsClientPage = () => {
         body: formData,
       });
       
+      // Check if unauthorized
+      if (res.status === 401) {
+        if (handleAuthError(401)) return;
+      }
+      
       if (!res.ok) {
-        throw new Error('Failed to unlock admin account');
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to unlock admin account');
       }
       
       // Refresh data instead of just updating local state
@@ -148,6 +179,11 @@ const AdminsClientPage = () => {
   // Add a method to retry fetching data
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
+  };
+
+  // Login redirect handler
+  const handleLoginRedirect = () => {
+    router.push('/login?redirect=' + encodeURIComponent(pathname + '?' + searchParams.toString()));
   };
 
   if (error) {
@@ -169,6 +205,14 @@ const AdminsClientPage = () => {
             >
               Try Again
             </button>
+            {errorDetails && errorDetails.includes('Unauthorized') && (
+              <button 
+                className={styles.loginButton} 
+                onClick={handleLoginRedirect}
+              >
+                Log In
+              </button>
+            )}
             <button 
               className={styles.dashboardButton} 
               onClick={() => router.push('/dashboard')}

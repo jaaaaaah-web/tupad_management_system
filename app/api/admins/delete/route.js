@@ -1,19 +1,28 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/app/lib/utils';
 import { Admins } from '@/app/lib/models';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth';
+import { cookies } from 'next/headers';
+import mongoose from 'mongoose';
 
 export async function POST(request) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    // Check authentication using cookies
+    const adminId = cookies().get("auth-token")?.value;
+    if (!adminId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Connect to database
+    await connectToDB();
+
+    // Verify the admin has system_admin role
+    const requestingAdmin = await Admins.findById(adminId);
+    if (!requestingAdmin) {
+      return NextResponse.json({ error: 'Admin not found' }, { status: 401 });
+    }
+
     // Check if user has system_admin role
-    if (session.user.role !== 'system_admin') {
+    if (requestingAdmin.role !== 'system_admin') {
       return NextResponse.json({ error: 'Not authorized to delete admins' }, { status: 403 });
     }
 
@@ -24,9 +33,6 @@ export async function POST(request) {
     if (!id) {
       return NextResponse.json({ error: 'Admin ID is required' }, { status: 400 });
     }
-
-    // Connect to database
-    await connectToDB();
 
     // Delete the admin
     const result = await Admins.findByIdAndDelete(id);
