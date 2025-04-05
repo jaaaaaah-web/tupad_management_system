@@ -54,7 +54,6 @@ const annoucementsSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-
     title: {
       type: String,
       required: true,
@@ -147,7 +146,6 @@ const adminsSchema = new mongoose.Schema(
     },
     number: {
       type: String,
-      
     },
     email: {
       type: String,
@@ -176,7 +174,7 @@ const adminsSchema = new mongoose.Schema(
       type: String,
       enum: ['system_admin', 'data_encoder'],
       default: 'data_encoder'
-    },
+    }
   },
   { timestamps: true }
 );
@@ -230,7 +228,7 @@ const getModel = (modelName, schema) => {
       collection: {
         find: () => ({ limit: () => ({ skip: () => ({ sort: () => [] }) }) }),
         findOne: () => null,
-        countDocuments: () => 0,
+        countDocuments: () => 0
       }
     };
   }
