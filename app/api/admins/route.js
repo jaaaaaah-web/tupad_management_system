@@ -86,7 +86,7 @@ export async function GET(request) {
       }, { status: 500 });
     }
     
-    // Convert to plain objects for serialization and add image URL processing
+    // Convert to plain objects for serialization and process image paths
     try {
       const serializedAdmins = JSON.parse(JSON.stringify(admins));
       
@@ -97,12 +97,29 @@ export async function GET(request) {
           admin.id = admin._id.toString();
         }
         
-        // Add a timestamp to the profileImage to bust the cache
+        // Process profile image to ensure it's properly formatted
         if (admin.profileImage) {
-          // Clean the image path to just the filename if it has a path
-          const imageName = admin.profileImage.split('/').pop();
-          // Set full path with timestamp to prevent caching
-          admin.profileImage = imageName ? `/uploads/${imageName}?t=${Date.now()}` : null;
+          // If it's already a data URL format (from our saveProfileImage in production), keep it as is
+          if (admin.profileImage.startsWith('dataurl:')) {
+            // No changes needed - the ProfileImage component will handle this format
+          }
+          // If it's already a full URL, leave it as is
+          else if (admin.profileImage.startsWith('http')) {
+            // Just add cache busting if needed
+            admin.profileImage = `${admin.profileImage}${admin.profileImage.includes('?') ? '&' : '?'}t=${Date.now()}`;
+          }
+          // If it's already a path with /uploads/, just add cache busting
+          else if (admin.profileImage.startsWith('/uploads/')) {
+            admin.profileImage = `${admin.profileImage}${admin.profileImage.includes('?') ? '&' : '?'}t=${Date.now()}`;
+          }
+          // Otherwise, assume it's just a filename and prepend the path
+          else {
+            const imageName = admin.profileImage.split('/').pop();
+            admin.profileImage = `/uploads/${imageName || admin.profileImage}?t=${Date.now()}`;
+          }
+        } else {
+          // Default to noavatar.png if no image
+          admin.profileImage = `/noavatar.png?t=${Date.now()}`;
         }
         
         return admin;

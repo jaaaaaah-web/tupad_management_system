@@ -30,17 +30,19 @@ async function saveProfileImage(file) {
     
     // In production (Vercel), we can't write to the filesystem directly
     if (process.env.NODE_ENV === 'production') {
-      // For production, we need to save the file to a temp location
-      // and return the filename - the image will be uploaded through the API
-      const { writeFile, mkdir } = await import('fs/promises');
-      
       try {
         // Get file buffer
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         
-        // In production, return just the filename - it will be treated correctly by the ProfileImage component
-        return filename;
+        // For Vercel, we store the image data in the database as base64
+        // This lets us create a data URL that will work without filesystem access
+        const base64Data = buffer.toString('base64');
+        const mimeType = file.type || 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${base64Data}`;
+        
+        // Return the data URL with a special prefix so we can identify it later
+        return `dataurl:${filename}:${dataUrl}`;
       } catch (error) {
         console.error("Error processing file in production:", error);
         return null;

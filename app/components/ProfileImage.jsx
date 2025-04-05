@@ -12,43 +12,73 @@ const ProfileImage = ({ src, alt, width = 50, height = 50, className }) => {
   const processImageSrc = (imageSrc) => {
     if (!imageSrc) return fallbackSrc;
     
-    // If it's already a full URL or a properly formatted path with cache control, use it as is
-    if (imageSrc.startsWith('http') || (imageSrc.startsWith('/') && imageSrc.includes('?t='))) {
-      return imageSrc;
+    // Handle data URLs from Vercel environment
+    if (imageSrc.startsWith('dataurl:')) {
+      // Extract the data URL part after the prefix and filename
+      const parts = imageSrc.split(':');
+      if (parts.length >= 3) {
+        // The format is "dataurl:filename:actualDataUrl"
+        // Join back all parts after the second colon in case the data URL itself contains colons
+        return parts.slice(2).join(':');
+      }
+      return fallbackSrc;
     }
     
-    // If it's a path without cache control, add it
-    if (imageSrc.startsWith('/')) {
-      return `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${Date.now()}`;
+    // Add a cache-busting timestamp
+    const timestamp = Date.now();
+    
+    // If it's already a full URL (including https:// or http://)
+    if (imageSrc.startsWith('http')) {
+      return `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${timestamp}`;
     }
     
-    // If it contains a file extension, it's likely a filename - add the /uploads/ prefix and cache buster
+    // If it's a blob URL (from camera capture)
+    if (imageSrc.startsWith('blob:')) {
+      return imageSrc; // Blob URLs don't need modification
+    }
+    
+    // If it's a data URL (base64 encoded image)
+    if (imageSrc.startsWith('data:')) {
+      return imageSrc; // Data URLs don't need modification
+    }
+    
+    // If it's a path starting with /uploads/ already
+    if (imageSrc.startsWith('/uploads/')) {
+      return `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${timestamp}`;
+    }
+    
+    // If it's just a filename (with extension)
     if (imageSrc.match(/\.(jpeg|jpg|png|gif|webp)$/i) || !imageSrc.includes('/')) {
-      return `/uploads/${imageSrc}?t=${Date.now()}`;
+      return `/uploads/${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${timestamp}`;
     }
     
-    // Otherwise, assume it's already a valid path and just add cache busting
-    return `${imageSrc}?t=${Date.now()}`;
+    // For any other path
+    return `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${timestamp}`;
   };
   
   // Set initial image source
-  const [imgSrc, setImgSrc] = useState(processImageSrc(src));
+  const [imgSrc, setImgSrc] = useState(() => processImageSrc(src));
+  const [hasError, setHasError] = useState(false);
   
   // Update image source when props change
   useEffect(() => {
-    setImgSrc(processImageSrc(src));
+    if (src) {
+      setImgSrc(processImageSrc(src));
+      setHasError(false);
+    }
   }, [src]);
   
   // Handle image loading error
   const handleImageError = () => {
     console.log("Image failed to load:", imgSrc);
+    setHasError(true);
     setImgSrc(fallbackSrc);
   };
   
   return (
-    <div className={`${styles.profileImageContainer} ${className || ''}`}>
+    <div className={`${styles.profileImageContainer} ${className || ''}`} style={{ width, height }}>
       <Image
-        src={imgSrc}
+        src={hasError ? fallbackSrc : imgSrc}
         alt={alt || "Profile"}
         width={width}
         height={height}

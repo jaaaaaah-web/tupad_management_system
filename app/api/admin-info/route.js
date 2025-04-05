@@ -22,12 +22,38 @@ export async function GET() {
     
     console.log("Admin from DB:", admin); // Debug log
     
+    // Process profile image path
+    let profileImage = admin.profileImage;
+    if (profileImage) {
+      // If it's already a data URL format (from our saveProfileImage in production), keep it as is
+      if (profileImage.startsWith('dataurl:')) {
+        // No changes needed - the ProfileImage component will handle this format
+      }
+      // If it's already a full URL, leave it as is
+      else if (profileImage.startsWith('http')) {
+        // Just add cache busting
+        profileImage = `${profileImage}${profileImage.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      }
+      // If it's already a path with /uploads/, just add cache busting
+      else if (profileImage.startsWith('/uploads/')) {
+        profileImage = `${profileImage}${profileImage.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      }
+      // Otherwise, assume it's just a filename and prepend the path
+      else {
+        const imageName = profileImage.split('/').pop();
+        profileImage = `/uploads/${imageName || profileImage}?t=${Date.now()}`;
+      }
+    } else {
+      // Default to noavatar.png if no image
+      profileImage = `/noavatar.png?t=${Date.now()}`;
+    }
+    
     return NextResponse.json({
       id: admin._id.toString(),
       username: admin.username,
       name: admin.name || admin.username,
       email: admin.email,
-      profileImage: admin.profileImage,
+      profileImage: profileImage,
       role: admin.role // Return the role from DB
     });
   } catch (error) {
