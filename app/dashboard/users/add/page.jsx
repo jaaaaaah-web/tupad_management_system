@@ -1,5 +1,5 @@
 import React from 'react'
-import styles from "@/app/ui/dashboard/users/AddUserPage/addUsersPage.module.css"
+import styles from "@/app/ui/dashboard/users/addUserPage/addUsersPage.module.css"
 import { addUser } from '@/app/lib/actions';
 
 const AddUserPage = () => {
