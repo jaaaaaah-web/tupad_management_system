@@ -4,9 +4,17 @@ import Search from "@/app/ui/dashboard/search/search";
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Link from "next/link";
 import { fetchAdmins } from "@/app/lib/data";
-import { deleteAdmin, unlockAccount } from "@/app/lib/actions";
-import ProfileImage from "@/app/components/ProfileImage";
+import AdminTableClient from "@/app/components/AdminTableClient";
 import TableControls from "@/app/components/TableControls/TableControls";
+
+// Error handling component to prevent the entire page from crashing
+const ErrorBoundary = ({ children }) => {
+  return (
+    <div>
+      {children}
+    </div>
+  );
+};
 
 const AdminPage = async ({ searchParams }) => {
   const q = searchParams?.q || "";
@@ -18,13 +26,15 @@ const AdminPage = async ({ searchParams }) => {
   // Wrap database call in try-catch for better error handling
   let count = 0;
   let admins = [];
+  let error = null;
   
   try {
     const result = await fetchAdmins(q, page, sort, direction, rowCount);
     count = result.count;
     admins = result.admins;
-  } catch (error) {
-    console.error("Error fetching admins:", error);
+  } catch (err) {
+    console.error("Error fetching admins:", err);
+    error = err.message;
     // Continue with empty data instead of crashing
   }
   
@@ -37,101 +47,30 @@ const AdminPage = async ({ searchParams }) => {
   ];
 
   return (
-    <div className={styles.container}>
-      <div className={styles.top}>
-        <Search placeholder="Search for admins..." />
-        <Link href="/dashboard/admins/add">
-          <button className={styles.addButton}>Add New Admin</button>
-        </Link>
+    <ErrorBoundary>
+      <div className={styles.container}>
+        <div className={styles.top}>
+          <Search placeholder="Search for admins..." />
+          <Link href="/dashboard/admins/add">
+            <button className={styles.addButton}>Add New Admin</button>
+          </Link>
+        </div>
+        
+        {/* Add TableControls component */}
+        <div className={styles.controls}>
+          <TableControls 
+            sortOptions={sortOptions}
+            defaultSort="createdAt"
+            defaultRowCount="all"
+          />
+        </div>
+        
+        {/* Use client component with fallback for database errors */}
+        <AdminTableClient initialAdmins={admins} initialCount={count} />
+        
+        <Pagination count={count} />
       </div>
-      
-      {/* Add TableControls component */}
-      <div className={styles.controls}>
-        <TableControls 
-          sortOptions={sortOptions}
-          defaultSort="createdAt"
-          defaultRowCount="all"
-        />
-      </div>
-      
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <td>Image</td>
-            <td>Username</td>
-            <td>Email</td>
-            <td>Name</td>
-            <td>Role</td>
-            <td>Status</td>
-            <td>Created At</td>
-            <td>Actions</td>
-          </tr>
-        </thead>
-        <tbody>
-          {admins && admins.length > 0 ? (
-            admins.map((admin) => (
-              <tr key={admin.id || admin._id}>
-                <td>
-                  <div className={styles.user}>
-                    <ProfileImage
-                      src={admin.profileImage}
-                      alt={admin.username}
-                      className={styles.userImage}
-                    />
-                  </div>
-                </td>
-                <td>{admin.username}</td>
-                <td>{admin.email}</td>
-                <td>{admin.name || "No name provided"}</td>
-                <td>{admin.role === 'system_admin' ? 'System Admin' : 'Data Encoder'}</td>
-                <td>
-                  <span className={`${styles.status} ${admin.accountLocked ? styles.locked : styles.active}`}>
-                    {admin.accountLocked ? 'Locked' : 'Active'}
-                  </span>
-                </td>
-                <td>{admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : "N/A"}</td>
-                <td>
-                  <div className={styles.buttons}>
-                    <Link href={`/dashboard/admins/${admin.id || admin._id}`}>
-                      <button className={`${styles.button} ${styles.view}`}>
-                        View
-                      </button>
-                    </Link>
-                    
-                    {admin.accountLocked && (
-                      <form action={unlockAccount}>
-                        <input type="hidden" name="id" value={admin.id || admin._id} />
-                        <button className={`${styles.button} ${styles.unlock}`}>
-                          Unlock
-                        </button>
-                      </form>
-                    )}
-                    
-                    <form action={deleteAdmin}>
-                      <input type="hidden" name="id" value={admin.id || admin._id} />
-                      <button className={`${styles.button} ${styles.delete}`}>
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={8} style={{ textAlign: 'center' }}>
-                {/* Enhanced error message that provides more information */}
-                <div>
-                  <p>No admins found or unable to connect to database.</p>
-                  <p>Try refreshing the page or contact support if the issue persists.</p>
-                </div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      <Pagination count={count} />
-    </div>
+    </ErrorBoundary>
   );
 };
 
