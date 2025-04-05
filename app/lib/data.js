@@ -270,12 +270,22 @@ export const fetchAdmins = async (q, page, sort, direction, rowCount = "all") =>
   try {
     await connectToDB(); // Ensure DB is connected
     
-    // Verify that the Admins model is properly initialized
-    if (!Admins.collection) {
-      console.error("Admins collection is not initialized properly");
-      return { count: 0, admins: [] }; // Return empty results instead of crashing
+    // Direct check if the Admins model is actually defined and initialized
+    if (!Admins || !Admins.collection) {
+      console.error("Admins collection is not available - returning empty results");
+      return { count: 0, admins: [] };
     }
     
+    // Try to handle possible model initialization issues in serverless environment
+    try {
+      // First try a simple operation to test if collection is working
+      await Admins.findOne({}).exec();
+    } catch (collectionError) {
+      console.error("Error accessing Admins collection:", collectionError);
+      return { count: 0, admins: [] };
+    }
+    
+    // Now proceed with the actual query
     const count = await Admins.countDocuments({ 
       $or: [
         { username: { $regex: regex } },
@@ -315,7 +325,7 @@ export const fetchAdmins = async (q, page, sort, direction, rowCount = "all") =>
     return { count, admins };
   } catch (error) {
     console.error("Error fetching admins:", error);
-    return { count: 0, admins: [] }; // Avoid breaking the app
+    return { count: 0, admins: [] }; // Return empty data instead of crashing
   }
 };
 

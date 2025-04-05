@@ -15,7 +15,18 @@ const AdminPage = async ({ searchParams }) => {
   const direction = searchParams?.direction || "asc";
   const rowCount = searchParams?.rowCount || "all";
   
-  const { count, admins } = await fetchAdmins(q, page, sort, direction, rowCount);
+  // Wrap database call in try-catch for better error handling
+  let count = 0;
+  let admins = [];
+  
+  try {
+    const result = await fetchAdmins(q, page, sort, direction, rowCount);
+    count = result.count;
+    admins = result.admins;
+  } catch (error) {
+    console.error("Error fetching admins:", error);
+    // Continue with empty data instead of crashing
+  }
   
   // Define sort options for the table
   const sortOptions = [
@@ -108,7 +119,13 @@ const AdminPage = async ({ searchParams }) => {
             ))
           ) : (
             <tr>
-              <td colSpan={8} style={{ textAlign: 'center' }}>No admins found</td>
+              <td colSpan={8} style={{ textAlign: 'center' }}>
+                {/* Enhanced error message that provides more information */}
+                <div>
+                  <p>No admins found or unable to connect to database.</p>
+                  <p>Try refreshing the page or contact support if the issue persists.</p>
+                </div>
+              </td>
             </tr>
           )}
         </tbody>
