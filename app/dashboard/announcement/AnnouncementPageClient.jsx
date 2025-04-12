@@ -34,7 +34,6 @@ const AnnouncementPageClient = ({ announcements, count }) => {
       <table className={styles.table}>
         <thead>
           <tr>
-            <td>Row Number</td>
             <td>ID</td>
             <td>Created By</td>
             <td>Title</td>
@@ -47,7 +46,6 @@ const AnnouncementPageClient = ({ announcements, count }) => {
           {announcements.map((announcement, index) => (
             <tr key={announcement._id}>
               <td>{index + 1}</td>
-              <td>{announcement._id}</td>
               <td>
                 <div className={styles.announcement}>
                   {announcement.createdBy}

@@ -23,7 +23,7 @@ const TransactionPageClient = ({ transactions, count }) => {
           <button className={styles.addButton}>Create New Payout</button>
         </Link>
       </div>
-      <h2 className={styles.title}>Payouts</h2>
+      
       
       <TableControls 
         sortOptions={sortOptions} 
@@ -34,13 +34,13 @@ const TransactionPageClient = ({ transactions, count }) => {
       <table className={styles.table}>
         <thead>
           <tr>
-            <td>Row Number</td>
             <td>ID</td>
             <td>Last Name</td>
             <td>Middle Name</td>
             <td>First Name</td>
             <td>Status</td>
             <td>Amount</td>
+            <td>Created By</td>
             <td>Date Received</td>
             <td>Action</td>
           </tr>
@@ -49,7 +49,6 @@ const TransactionPageClient = ({ transactions, count }) => {
         {transactions.map(transaction => (
             <tr key={transaction.id}>
               <td>{transaction.rowNumber}</td>
-              <td>{transaction.id}</td>
               <td>{transaction.lastName}</td>
               <td>{transaction.middleName || "-"}</td>
               <td>{transaction.firstName}</td>
@@ -67,6 +66,7 @@ const TransactionPageClient = ({ transactions, count }) => {
                 </span>
               </td>
               <td>{transaction.amount}</td>
+              <td>{transaction.cb || "-"}</td>
               <td>{transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : "-"}</td>
               <td>
                 <div className={styles.buttons}>
