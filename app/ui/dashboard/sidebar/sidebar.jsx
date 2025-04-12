@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './sidebar.module.css';
 import Image from 'next/image';
-import {MdDashboard,MdSupervisedUserCircle,MdAnnouncement,MdAdminPanelSettings,MdLogout, MdBackpack} from "react-icons/md";
+import {MdDashboard,MdSupervisedUserCircle,MdAnnouncement,MdAdminPanelSettings,MdLogout, MdBackpack, MdBackup} from "react-icons/md";
 import MenuLink from './menuLink/menuLink';
 import { logout } from "@/app/lib/actions";
 
@@ -60,6 +60,13 @@ const Sidebar = () => {
               title: "User Management",
               path: "/dashboard/admins",
               icon: <MdAdminPanelSettings />,
+            });
+            
+            // Add Backup & Restore menu item for system admins
+            baseMenuItems.push({
+              title: "Backup & Restore",
+              path: "/dashboard/backup",
+              icon: <MdBackup />,
             });
           }
           
