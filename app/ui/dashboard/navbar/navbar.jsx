@@ -12,9 +12,7 @@ const Navbar = () => {
       <div className={styles.menu}>
         
         <div className={styles.icons}>
-          <MdNotifications size={20} />
-          <MdOutlineChat size={20}/>
-          <MdPublic size={20}/>
+        
         </div>
       </div>
     </div>
