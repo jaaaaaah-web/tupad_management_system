@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from 'react';
 import styles from "@/app/ui/dashboard/transactions/singleTransactions/singleTransactions.module.css";
@@ -28,11 +28,23 @@ const CreateTransactionPage = () => {
     // Set the hidden beneficiaries field
     formData.set("beneficiaries", beneficiaries);
     
-    // Submit the form with the modified formData
-    await addTransactions(formData);
-    
-    // Redirect back to transactions list
-    router.push('/dashboard/transaction');
+    try {
+      // Submit the form with the modified formData
+      await addTransactions(formData);
+      
+      // Force a hard refresh to the transactions page to get fresh data
+      if (typeof window !== 'undefined') {
+        // Add timestamp to URL to force a complete reload with fresh data
+        window.location.href = `/dashboard/transaction?t=${Date.now()}`;
+      } else {
+        // Fallback to normal router navigation
+        router.push('/dashboard/transaction');
+      }
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      // Still redirect even if there's an error
+      router.push('/dashboard/transaction');
+    }
   };
   
   return (

@@ -284,11 +284,19 @@ export const addTransactions = async (formData) => {
     });
 
     await newTransactions.save();
+    
+    // Ensure all related paths are revalidated so new transactions appear everywhere
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/transaction"); 
+    revalidatePath("/api/dashboard/latest-transactions");
+    
   } catch (error) {
     console.error("Error creating transaction:", error);
   }
-  revalidatePath("/dashboard/transaction")
-  redirect("/dashboard/transaction")
+  
+  // Revalidate after all operations are complete
+  revalidatePath("/dashboard/transaction");
+  redirect("/dashboard/transaction");
 }
 
 export const updateTransactions = async (formData) => {

@@ -37,14 +37,18 @@ export const fetchRealtimeData = async (url, options = {}) => {
   }
 };
 
-// Helper for polling data at regular intervals
+// Helper for polling data at regular intervals - FIXED to avoid React hook violations
 export const setupPolling = (fetchFunction, interval = 15000, callback) => {
-  // Immediate fetch
-  fetchFunction();
+  // NOT calling fetchFunction immediately here anymore
+  // This was causing the React Error #418 in production
   
-  // Set up interval
+  // Set up interval - will run fetchFunction on the first tick
   const intervalId = setInterval(() => {
-    fetchFunction();
+    try {
+      fetchFunction();
+    } catch (error) {
+      console.error('Error in polling function:', error);
+    }
   }, interval);
   
   // Return cleanup function

@@ -24,10 +24,21 @@ const Transactions = () => {
     }
   };
 
-  // Set up polling with our utility
+  // Initial fetch on component mount
   useEffect(() => {
-    const cleanup = setupPolling(fetchTransactions, 12000); // 12 seconds for transactions
-    return cleanup;
+    // Immediate fetch when component mounts
+    fetchTransactions();
+  }, []);
+
+  // Set up separate polling mechanism
+  useEffect(() => {
+    // Start polling after initial fetch (every 8 seconds)
+    const interval = setInterval(() => {
+      fetchTransactions();
+    }, 8000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   // Function to refresh data manually
