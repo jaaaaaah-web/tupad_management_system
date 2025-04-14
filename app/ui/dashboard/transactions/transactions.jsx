@@ -3,30 +3,20 @@ import React, { useState, useEffect } from 'react';
 import styles from "./transactions.module.css";
 import Link from "next/link";
 import { MdRefresh } from "react-icons/md";
+import { fetchRealtimeData, setupPolling, formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Function to fetch latest transactions
+  // Function to fetch latest transactions with robust cache-busting
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/dashboard/latest-transactions', {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setTransactions(data);
-        setLastUpdated(new Date());
-      } else {
-        console.error('Failed to fetch latest transactions');
-      }
+      const data = await fetchRealtimeData('/api/dashboard/latest-transactions');
+      setTransactions(data);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching latest transactions:', error);
     } finally {
@@ -34,18 +24,10 @@ const Transactions = () => {
     }
   };
 
-  // Initial data fetch and setup polling
+  // Set up polling with our utility
   useEffect(() => {
-    // Fetch data immediately
-    fetchTransactions();
-    
-    // Set up polling interval (every 35 seconds)
-    const intervalId = setInterval(() => {
-      fetchTransactions();
-    }, 35000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
+    const cleanup = setupPolling(fetchTransactions, 12000); // 12 seconds for transactions
+    return cleanup;
   }, []);
 
   // Function to refresh data manually
@@ -65,7 +47,7 @@ const Transactions = () => {
             <MdRefresh />
           </button>
           <div className={styles.lastUpdated}>
-            Last updated: {lastUpdated.toLocaleTimeString()}
+            Last updated: {formatLastUpdated(lastUpdated)}
           </div>
         </div>
       </div>

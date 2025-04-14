@@ -2,6 +2,7 @@
 import React from 'react';
 import styles from './card.module.css';
 import { MdAttachMoney, MdRefresh } from 'react-icons/md';
+import { formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const PayoutCard = ({ totalAmount, years, onYearChange, selectedYear, lastUpdated }) => {
   // Format the amount as currency
@@ -41,7 +42,7 @@ const PayoutCard = ({ totalAmount, years, onYearChange, selectedYear, lastUpdate
           </span>
           {lastUpdated && (
             <span className={styles.lastUpdated}>
-              <MdRefresh size={12} /> Last updated: {lastUpdated.toLocaleTimeString()}
+              <MdRefresh size={12} /> Last updated: {formatLastUpdated(lastUpdated)}
             </span>
           )}
         </div>

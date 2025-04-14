@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from "../ui/dashboard/dashboard.module.css";
 import PayoutCard from '../ui/dashboard/card/PayoutCard';
+import { fetchRealtimeData, setupPolling, formatLastUpdated } from '../lib/realtimeFetch';
 
 const DashboardClient = ({ initialPayoutAmount, availableYears, children }) => {
   const [selectedYear, setSelectedYear] = useState(() => {
@@ -13,17 +14,12 @@ const DashboardClient = ({ initialPayoutAmount, availableYears, children }) => {
   const [totalPayoutAmount, setTotalPayoutAmount] = useState(initialPayoutAmount);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   
-  // Function to fetch payout amount data
-  const fetchPayoutAmount = async (year) => {
+  // Function to fetch payout amount data with robust cache-busting
+  const fetchPayoutAmount = async () => {
     try {
-      const res = await fetch(`/api/dashboard/payout-amount?year=${year}`);
-      if (res.ok) {
-        const data = await res.json();
-        setTotalPayoutAmount(data.amount);
-        setLastUpdated(new Date());
-      } else {
-        console.error('Failed to fetch payout amount');
-      }
+      const data = await fetchRealtimeData(`/api/dashboard/payout-amount?year=${selectedYear}`);
+      setTotalPayoutAmount(data.amount);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching payout amount:', error);
     }
@@ -31,21 +27,22 @@ const DashboardClient = ({ initialPayoutAmount, availableYears, children }) => {
   
   const handleYearChange = async (year) => {
     setSelectedYear(year);
-    fetchPayoutAmount(year);
+    try {
+      const data = await fetchRealtimeData(`/api/dashboard/payout-amount?year=${year}`);
+      setTotalPayoutAmount(data.amount);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching payout amount for year change:', error);
+    }
   };
   
   // Set up a polling interval to refresh data
   useEffect(() => {
-    // Initial data fetch (beyond the one from SSR)
-    fetchPayoutAmount(selectedYear);
+    // Setup polling for payout amount - run every 15 seconds
+    const cleanup = setupPolling(fetchPayoutAmount, 15000);
     
-    // Set up polling interval (every 30 seconds)
-    const intervalId = setInterval(() => {
-      fetchPayoutAmount(selectedYear);
-    }, 30000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
+    // Clean up interval on component unmount or when selected year changes
+    return cleanup;
   }, [selectedYear]);
   
   return (

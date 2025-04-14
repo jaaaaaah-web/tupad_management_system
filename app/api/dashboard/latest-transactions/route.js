@@ -6,13 +6,15 @@ export async function GET() {
     // Fetch the latest transactions
     const transactions = await fetchLatestTransactions();
     
-    // Return data with cache control headers to prevent excessive caching
+    // Return data with comprehensive cache control headers
     return NextResponse.json(
       transactions,
       { 
         headers: {
-          'Cache-Control': 'no-store, max-age=0',
-          'Surrogate-Control': 'no-store'
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Surrogate-Control': 'no-store',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       }
     );

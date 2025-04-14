@@ -10,13 +10,15 @@ export async function GET(request) {
     // Fetch total payout amount for the specified year
     const amount = await fetchTotalPayoutAmount(year);
     
-    // Create response with cache control headers to prevent excessive caching
+    // Create response with comprehensive cache control headers
     return NextResponse.json(
       { amount },
       { 
         headers: {
-          'Cache-Control': 'no-store, max-age=0',
-          'Surrogate-Control': 'no-store'
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Surrogate-Control': 'no-store',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       }
     );

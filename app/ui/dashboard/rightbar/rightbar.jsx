@@ -2,43 +2,36 @@
 import React, { useEffect, useState } from 'react';
 import styles from './rightbar.module.css';
 import { MdPeopleAlt, MdMap, MdRefresh } from 'react-icons/md';
+import { fetchRealtimeData, setupPolling, formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const Rightbar = () => {
   const [purokData, setPurokData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Function to fetch beneficiaries by purok
+  // Function to fetch beneficiaries by purok with robust cache-busting
   const fetchBeneficiariesByPurok = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/chart-data', {
-        // Add cache-busting headers to prevent browser caching
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+      const data = await fetchRealtimeData('/api/chart-data');
+      
+      // Calculate total for each purok using the age group data
+      const processedData = data.data.map(purok => {
+        const ageGroups = data.ageGroups || [];
+        let total = 0;
+        ageGroups.forEach(group => {
+          total += purok[group] || 0;
+        });
+        return {
+          name: purok.name,
+          total: total
+        };
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        // Calculate total for each purok using the age group data
-        const processedData = data.data.map(purok => {
-          const ageGroups = data.ageGroups || [];
-          let total = 0;
-          ageGroups.forEach(group => {
-            total += purok[group] || 0;
-          });
-          return {
-            name: purok.name,
-            total: total
-          };
-        });
-        // Sort by total beneficiaries descending
-        processedData.sort((a, b) => b.total - a.total);
-        setPurokData(processedData);
-        setLastUpdated(new Date());
-      }
+      // Sort by total beneficiaries descending
+      processedData.sort((a, b) => b.total - a.total);
+      setPurokData(processedData);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error("Failed to fetch purok data:", error);
     } finally {
@@ -46,18 +39,10 @@ const Rightbar = () => {
     }
   };
 
-  // Initial data fetch and setup polling
+  // Set up polling with our utility
   useEffect(() => {
-    // Fetch data immediately
-    fetchBeneficiariesByPurok();
-    
-    // Set up polling interval (every 40 seconds)
-    const intervalId = setInterval(() => {
-      fetchBeneficiariesByPurok();
-    }, 40000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
+    const cleanup = setupPolling(fetchBeneficiariesByPurok, 18000); // 18 seconds for rightbar
+    return cleanup;
   }, []);
 
   // Function to refresh data manually
@@ -79,10 +64,10 @@ const Rightbar = () => {
         </div>
 
         <div className={styles.lastUpdated}>
-          Last updated: {lastUpdated.toLocaleTimeString()}
+          Last updated: {formatLastUpdated(lastUpdated)}
         </div>
 
-        {loading ? (
+        {loading && purokData.length === 0 ? (
           <div className={styles.loading}>Loading data...</div>
         ) : (
           <div className={styles.purokList}>

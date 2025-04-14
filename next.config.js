@@ -25,12 +25,30 @@ const nextConfig = {
   // Configure for Vercel deployment
   output: 'standalone',
 
+  // Disable ISR and static regeneration for all routes
+  staticPageGenerationTimeout: 0,
+  
+  // Disable static optimizations to ensure pages are always server-rendered
+  unstable_includeFiles: ['**/*.js'],
+  
+  // Disable Next.js cache for all routes
+  onDemandEntries: {
+    // Keep the ISR cache live for a short time
+    maxInactiveAge: 5 * 1000, // 5 seconds
+    // Only cache 1 page
+    pagesBufferLength: 1,
+  },
+
   // Important: Configure routes to prevent static rendering of dynamic content
   experimental: {
     serverComponentsExternalPackages: ['mongoose'],
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    // Disable page data caching
+    isrMemoryCacheSize: 0,
+    // Disable fetch cache in development and production
+    fetchCache: false,
   },
 
   // Skip static generation for dynamic routes
