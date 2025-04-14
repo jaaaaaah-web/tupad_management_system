@@ -1,6 +1,6 @@
 "use client";
 import styles from "./chart.module.css";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -11,7 +11,7 @@ import {
   Legend
 } from "recharts";
 import { MdRefresh } from "react-icons/md";
-import { useRealtimeData, formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 // Color palette for different age groups
 const ageColors = {
@@ -23,17 +23,61 @@ const ageColors = {
 };
 
 const Chart = () => {
-  // Use the useRealtimeData hook with immediate fetching enabled
-  const { 
-    data: chartData, 
-    loading, 
-    lastUpdated, 
-    refetch: handleRefresh 
-  } = useRealtimeData('/api/chart-data', {}, 20000, true); // 20 seconds polling interval, fetch immediately
-  
-  // Use useMemo instead of useState + useEffect for derived data
-  const data = useMemo(() => chartData?.data || [], [chartData]);
-  const ageGroups = useMemo(() => chartData?.ageGroups || [], [chartData]);
+  const [data, setData] = useState([]);
+  const [ageGroups, setAgeGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Function to fetch chart data directly without any hooks
+  const fetchChartData = async () => {
+    try {
+      setLoading(true);
+      // Add timestamp to URL to prevent caching
+      const timestamp = new Date().getTime() + Math.floor(Math.random() * 1000);
+      const response = await fetch(`/api/chart-data?_=${timestamp}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'x-vercel-cache-control-bypass': 'true'
+        },
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch chart data');
+      }
+      
+      const chartData = await response.json();
+      setData(chartData.data || []);
+      setAgeGroups(chartData.ageGroups || []);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchChartData();
+  }, []);
+
+  // Set up polling interval
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchChartData();
+    }, 20000); // Poll every 20 seconds
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Handle manual refresh
+  const handleRefresh = () => {
+    fetchChartData();
+  };
 
   // Show loading state
   if (loading && data.length === 0) {

@@ -1,17 +1,63 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './rightbar.module.css';
 import { MdPeopleAlt, MdMap, MdRefresh } from 'react-icons/md';
-import { useRealtimeData, formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const Rightbar = () => {
-  // Replace the manual polling with the new hook
-  const { 
-    data: chartData, 
-    loading, 
-    lastUpdated, 
-    refetch: handleRefresh 
-  } = useRealtimeData('/api/chart-data', {}, 18000, true); // 18 seconds polling interval, fetch immediately
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Function to fetch chart data directly without any hooks
+  const fetchChartData = async () => {
+    try {
+      setLoading(true);
+      // Add timestamp to URL to prevent caching
+      const timestamp = new Date().getTime() + Math.floor(Math.random() * 1000);
+      const response = await fetch(`/api/chart-data?_=${timestamp}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'x-vercel-cache-control-bypass': 'true'
+        },
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch chart data');
+      }
+      
+      const data = await response.json();
+      setChartData(data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchChartData();
+  }, []);
+
+  // Set up polling interval
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchChartData();
+    }, 18000); // Poll every 18 seconds
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Handle manual refresh
+  const handleRefresh = () => {
+    fetchChartData();
+  };
   
   // Process the data for display
   const purokData = React.useMemo(() => {
