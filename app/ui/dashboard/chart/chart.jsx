@@ -11,7 +11,7 @@ import {
   Legend
 } from "recharts";
 import { MdRefresh } from "react-icons/md";
-import { fetchRealtimeData, setupPolling, formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { useRealtimeData, formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 // Color palette for different age groups
 const ageColors = {
@@ -23,34 +23,25 @@ const ageColors = {
 };
 
 const Chart = () => {
+  // Replace polling with the new useRealtimeData hook
+  const { 
+    data: chartData, 
+    loading, 
+    lastUpdated, 
+    refetch: handleRefresh 
+  } = useRealtimeData('/api/chart-data', {}, 20000); // 20 seconds polling interval
+  
+  // Derived state from chartData
   const [data, setData] = useState([]);
   const [ageGroups, setAgeGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-
-  const fetchChartData = async () => {
-    try {
-      setLoading(true);
-      const chartData = await fetchRealtimeData('/api/chart-data');
+  
+  // Update derived state when chartData changes
+  useEffect(() => {
+    if (chartData) {
       setData(chartData.data || []);
       setAgeGroups(chartData.ageGroups || []);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Failed to fetch chart data:", error);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // Set up polling with our utility
-  useEffect(() => {
-    const cleanup = setupPolling(fetchChartData, 20000); // 20 seconds for chart data
-    return cleanup;
-  }, []);
-
-  const handleRefresh = () => {
-    fetchChartData();
-  };
+  }, [chartData]);
 
   if (loading && data.length === 0) {
     return <div className={styles.container}>Loading chart data...</div>;

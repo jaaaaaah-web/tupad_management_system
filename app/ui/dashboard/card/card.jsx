@@ -1,47 +1,31 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from './card.module.css';
 import { MdSupervisedUserCircle, MdRefresh } from 'react-icons/md';
 import Link from 'next/link';
-import { fetchRealtimeData, setupPolling, formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { useRealtimeData, formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const Card = () => {
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-
-  // Function to fetch beneficiary count with robust cache-busting
-  const fetchBeneficiaryCount = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchRealtimeData('/api/dashboard/beneficiary-count');
-      setCount(data.count);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error fetching beneficiary count:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Set up polling with our utility
-  useEffect(() => {
-    const cleanup = setupPolling(fetchBeneficiaryCount, 15000);
-    return cleanup;
-  }, []);
-
-  // Function to refresh data manually
-  const handleRefresh = (e) => {
-    e.preventDefault(); // Prevent navigation since this is inside a Link
-    fetchBeneficiaryCount();
-  };
+  // Use the new hook for real-time data fetching
+  const { 
+    data, 
+    loading, 
+    lastUpdated, 
+    refetch: handleRefresh 
+  } = useRealtimeData('/api/dashboard/beneficiary-count', {}, 15000);
+  
+  // Extract count from the response data
+  const count = data?.count || 0;
   
   return (
     <Link href="/dashboard/users" style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className={styles.container}>
         <div className={styles.yearFilterContainer}>
           <button 
-            onClick={handleRefresh} 
+            onClick={(e) => {
+              e.preventDefault(); // Prevent navigation since this is inside a Link
+              handleRefresh();
+            }} 
             className={styles.refreshButton} 
             title="Refresh data"
           >

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from "../ui/dashboard/dashboard.module.css";
 import PayoutCard from '../ui/dashboard/card/PayoutCard';
-import { fetchRealtimeData, setupPolling, formatLastUpdated } from '../lib/realtimeFetch';
+import { fetchRealtimeData, formatLastUpdated, useRealtimeData } from '../lib/realtimeFetch';
 
 const DashboardClient = ({ initialPayoutAmount, availableYears, children }) => {
   const [selectedYear, setSelectedYear] = useState(() => {
@@ -11,39 +11,34 @@ const DashboardClient = ({ initialPayoutAmount, availableYears, children }) => {
     return availableYears.includes(currentYear) ? currentYear : "all";
   });
   
+  // We'll use the realtimeData hook for fetching data
+  // Notice we pass a dynamic URL based on the selected year
+  const { 
+    data: payoutData, 
+    lastUpdated,
+    refetch: refetchPayoutAmount
+  } = useRealtimeData(`/api/dashboard/payout-amount?year=${selectedYear}`, {}, 15000);
+  
+  // We'll keep using the original state for the PayoutCard since it works in production
   const [totalPayoutAmount, setTotalPayoutAmount] = useState(initialPayoutAmount);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
   
-  // Function to fetch payout amount data with robust cache-busting
-  const fetchPayoutAmount = async () => {
-    try {
-      const data = await fetchRealtimeData(`/api/dashboard/payout-amount?year=${selectedYear}`);
-      setTotalPayoutAmount(data.amount);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error fetching payout amount:', error);
+  // Update totalPayoutAmount whenever the payoutData changes
+  useEffect(() => {
+    if (payoutData && payoutData.amount !== undefined) {
+      setTotalPayoutAmount(payoutData.amount);
     }
-  };
+  }, [payoutData]);
   
+  // Handler for year change, keeping the original implementation
   const handleYearChange = async (year) => {
     setSelectedYear(year);
     try {
       const data = await fetchRealtimeData(`/api/dashboard/payout-amount?year=${year}`);
       setTotalPayoutAmount(data.amount);
-      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching payout amount for year change:', error);
     }
   };
-  
-  // Set up a polling interval to refresh data
-  useEffect(() => {
-    // Setup polling for payout amount - run every 15 seconds
-    const cleanup = setupPolling(fetchPayoutAmount, 15000);
-    
-    // Clean up interval on component unmount or when selected year changes
-    return cleanup;
-  }, [selectedYear]);
   
   return (
     <div className={styles.wrapper}>

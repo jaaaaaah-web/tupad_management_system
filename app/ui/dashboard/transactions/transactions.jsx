@@ -1,53 +1,21 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from "./transactions.module.css";
 import Link from "next/link";
 import { MdRefresh } from "react-icons/md";
-import { fetchRealtimeData, setupPolling, formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { useRealtimeData, formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const Transactions = () => {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-
-  // Function to fetch latest transactions with robust cache-busting
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchRealtimeData('/api/dashboard/latest-transactions');
-      setTransactions(data);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error fetching latest transactions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Initial fetch on component mount
-  useEffect(() => {
-    // Immediate fetch when component mounts
-    fetchTransactions();
-  }, []);
-
-  // Set up separate polling mechanism
-  useEffect(() => {
-    // Start polling after initial fetch (every 8 seconds)
-    const interval = setInterval(() => {
-      fetchTransactions();
-    }, 8000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
-
-  // Function to refresh data manually
-  const handleRefresh = () => {
-    fetchTransactions();
-  };
-
+  // Replace manual polling with our new hook
+  const { 
+    data: transactions, 
+    loading, 
+    lastUpdated, 
+    refetch: handleRefresh 
+  } = useRealtimeData('/api/dashboard/latest-transactions', {}, 8000); // 8 seconds polling interval
+  
   // Get only the first 3 transactions
-  const latestTransactions = transactions.slice(0, 3);
+  const latestTransactions = (transactions || []).slice(0, 3);
   
   return (
     <div className={styles.container}>
@@ -63,13 +31,12 @@ const Transactions = () => {
         </div>
       </div>
       
-      {loading && transactions.length === 0 ? (
+      {loading && latestTransactions.length === 0 ? (
         <div className={styles.loading}>Loading transactions...</div>
-      ) : (
+      ) : latestTransactions.length > 0 ? (
         <table className={styles.table}>
           <thead>
             <tr>
-              <td>Created By</td>
               <td>Beneficiary</td>
               <td>Status</td>
               <td>Date</td>
@@ -77,30 +44,31 @@ const Transactions = () => {
             </tr>
           </thead>
           <tbody>
-            {latestTransactions.length > 0 ? (
-              latestTransactions.map((transaction) => (
-                <tr key={transaction._id}>
-                  <td>{transaction.cb}</td>
-                  <td>{transaction.beneficiaries}</td>
-                  <td>
-                    <span className={`${styles.status} ${styles[transaction.status?.toLowerCase() || 'pending']}`}>
-                      {transaction.status || 'Pending'}
-                    </span>
-                  </td>
-                  <td>{new Date(transaction.createdAt).toLocaleDateString()}</td>
-                  <td>₱{transaction.amount}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} style={{textAlign: 'center'}}>No transactions found</td>
+            {latestTransactions.map((transaction) => (
+              <tr key={transaction._id}>
+                <td>
+                  <div className={styles.user}>
+                    {transaction.beneficiaries}
+                  </div>
+                </td>
+                <td>
+                  <span className={`${styles.status} ${styles[transaction.status]}`}>
+                    {transaction.status}
+                  </span>
+                </td>
+                <td>{new Date(transaction.createdAt).toLocaleDateString()}</td>
+                <td>₱{transaction.amount.toLocaleString()}</td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
+      ) : (
+        <div className={styles.noTransactions}>
+          <p>No recent transactions found</p>
+        </div>
       )}
-      <Link href="/dashboard/transaction">
-        <span className={styles.viewAll}>View All</span>
+      <Link href="/dashboard/transaction" className={styles.link}>
+        View All
       </Link>
     </div>
   );

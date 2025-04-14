@@ -1,54 +1,40 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styles from './rightbar.module.css';
 import { MdPeopleAlt, MdMap, MdRefresh } from 'react-icons/md';
-import { fetchRealtimeData, setupPolling, formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { useRealtimeData, formatLastUpdated } from '@/app/lib/realtimeFetch';
 
 const Rightbar = () => {
-  const [purokData, setPurokData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-
-  // Function to fetch beneficiaries by purok with robust cache-busting
-  const fetchBeneficiariesByPurok = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchRealtimeData('/api/chart-data');
-      
-      // Calculate total for each purok using the age group data
-      const processedData = data.data.map(purok => {
-        const ageGroups = data.ageGroups || [];
-        let total = 0;
-        ageGroups.forEach(group => {
-          total += purok[group] || 0;
-        });
-        return {
-          name: purok.name,
-          total: total
-        };
-      });
-      
-      // Sort by total beneficiaries descending
-      processedData.sort((a, b) => b.total - a.total);
-      setPurokData(processedData);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Failed to fetch purok data:", error);
-    } finally {
-      setLoading(false);
+  // Replace the manual polling with the new hook
+  const { 
+    data: chartData, 
+    loading, 
+    lastUpdated, 
+    refetch: handleRefresh 
+  } = useRealtimeData('/api/chart-data', {}, 18000); // 18 seconds polling interval
+  
+  // Process the data for display
+  const purokData = React.useMemo(() => {
+    if (!chartData || !chartData.data || !chartData.ageGroups) {
+      return [];
     }
-  };
-
-  // Set up polling with our utility
-  useEffect(() => {
-    const cleanup = setupPolling(fetchBeneficiariesByPurok, 18000); // 18 seconds for rightbar
-    return cleanup;
-  }, []);
-
-  // Function to refresh data manually
-  const handleRefresh = () => {
-    fetchBeneficiariesByPurok();
-  };
+    
+    // Calculate total for each purok using the age group data
+    const processedData = chartData.data.map(purok => {
+      const ageGroups = chartData.ageGroups || [];
+      let total = 0;
+      ageGroups.forEach(group => {
+        total += purok[group] || 0;
+      });
+      return {
+        name: purok.name,
+        total: total
+      };
+    });
+    
+    // Sort by total beneficiaries descending
+    return processedData.sort((a, b) => b.total - a.total);
+  }, [chartData]);
 
   return (
     <div className={styles.container}>
