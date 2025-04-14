@@ -11,7 +11,6 @@ import {
   Legend
 } from "recharts";
 import { MdRefresh } from "react-icons/md";
-import { useRouter } from "next/navigation";
 
 // Color palette for different age groups
 const ageColors = {
@@ -27,34 +26,37 @@ const Chart = () => {
   const [ageGroups, setAgeGroups] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [lastUpdated, setLastUpdated] = React.useState(null);
-  const intervalRef = React.useRef(null);
-  const router = useRouter();
-
+  
+  // Use ref to track if component is mounted
+  const isMounted = React.useRef(true);
+  
   // Format date for display
   const formatLastUpdated = (date) => {
     if (!date) return 'Never';
     
     return date.toLocaleTimeString([], { 
       hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
+      minute: '2-digit',
       hour12: true 
     });
   };
 
-  // Fetch data function using useCallback to ensure stability
+  // Function to safely update state only if component is mounted
+  const safeSetState = (callback) => {
+    if (isMounted.current) {
+      callback();
+    }
+  };
+
+  // Fetch data function with safety checks
   const fetchData = React.useCallback(async () => {
+    if (!isMounted.current) return;
+    
     try {
-      setLoading(true);
-      // Generate a unique timestamp
+      safeSetState(() => setLoading(true));
       const timestamp = Date.now();
-      const response = await fetch(`/api/chart-data?t=${timestamp}`, {
-        method: 'GET',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        next: { revalidate: 0 }
+      const response = await fetch(`/api/chart-data?t=${timestamp}`, { 
+        cache: 'no-store' 
       });
       
       if (!response.ok) {
@@ -62,47 +64,47 @@ const Chart = () => {
       }
       
       const chartData = await response.json();
-      setData(chartData.data || []);
-      setAgeGroups(chartData.ageGroups || []);
-      setLastUpdated(new Date());
+      
+      // Only update state if component is still mounted
+      safeSetState(() => {
+        setData(chartData.data || []);
+        setAgeGroups(chartData.ageGroups || []);
+        setLastUpdated(new Date());
+        setLoading(false);
+      });
     } catch (error) {
       console.error('Error fetching chart data:', error);
-    } finally {
-      setLoading(false);
+      safeSetState(() => setLoading(false));
     }
   }, []);
 
-  // Handle refresh button click
-  const handleRefresh = () => {
-    fetchData();
-    // Force router refresh
-    router.refresh();
-  };
-
-  // Set up initial fetch and polling
+  // Setup effect for initial fetch and interval
   React.useEffect(() => {
-    // Fetch initial data
+    // Set the mounted flag to true
+    isMounted.current = true;
+    
+    // Initial fetch
     fetchData();
     
-    // Set up interval for polling
-    intervalRef.current = setInterval(() => {
+    // Setup interval - less frequent polling for the chart
+    const interval = setInterval(() => {
       fetchData();
-    }, 20000); // Poll every 20 seconds
+    }, 20000);
     
-    // Clean up on unmount
+    // Cleanup function
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      // Set mounted flag to false when component unmounts
+      isMounted.current = false;
+      clearInterval(interval);
     };
   }, [fetchData]);
 
-  // Show loading state
-  if (loading && data.length === 0) {
-    return <div className={styles.container}>Loading chart data...</div>;
-  }
+  // Simple refresh handler
+  const handleRefresh = () => {
+    fetchData();
+  };
 
-  // Custom tooltip component that shows details for each age group
+  // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       let totalBeneficiaries = 0;
@@ -126,6 +128,11 @@ const Chart = () => {
     }
     return null;
   };
+
+  // Loading state
+  if (loading && data.length === 0) {
+    return <div className={styles.container}>Loading chart data...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -151,7 +158,6 @@ const Chart = () => {
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
         >
-          {/* Removed CartesianGrid to eliminate the background grid lines */}
           <XAxis 
             dataKey="name" 
             stroke="#ffffff" 

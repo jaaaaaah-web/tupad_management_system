@@ -4,7 +4,7 @@ import styles from './card.module.css';
 import { MdSupervisedUserCircle, MdRefresh } from 'react-icons/md';
 import Link from 'next/link';
 
-const Card = () => {
+const Card3 = () => {
   const [count, setCount] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [lastUpdated, setLastUpdated] = React.useState(null);
@@ -88,7 +88,7 @@ const Card = () => {
   };
   
   return (
-    <Link href="/dashboard/users" style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href="/dashboard/transaction" style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className={styles.container}>
         <div className={styles.yearFilterContainer}>
           <button 
@@ -102,10 +102,10 @@ const Card = () => {
         <div className={styles.cardContent}>
           <MdSupervisedUserCircle size={24}/>
           <div className={styles.text}>
-            <span className={styles.title}>Total Beneficiaries</span>
+            <span className={styles.title}>Transactions</span>
             <span className={styles.number}>{loading ? '...' : count}</span>
             <span className={styles.detail}>
-              View all beneficiaries
+              Recent Transactions
             </span>
             {lastUpdated && (
               <span className={styles.lastUpdated}>
@@ -119,4 +119,4 @@ const Card = () => {
   );
 };
 
-export default Card;
+export default Card3;
