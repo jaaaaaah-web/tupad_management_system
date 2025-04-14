@@ -45,23 +45,27 @@ const SingleUserpage = async ({params}) => {
               <input type="text" name="lastName" placeholder={user?.lastName} defaultValue={user?.lastName} />
             </div>
             <div>
-              <label>CP Number</label>
-              <input type="text" name="cpNumber" placeholder={user?.cpNumber} defaultValue={user?.cpNumber} />
+              <label>Extension</label>
+              <input type="text" name="extension" placeholder="Jr., Sr., III, etc." defaultValue={user?.extension} />
             </div>
           </div>
 
           <div className={styles.row}>
+            <div>
+              <label>CP Number</label>
+              <input type="text" name="cpNumber" placeholder={user?.cpNumber} defaultValue={user?.cpNumber} />
+            </div>
             <div>
               <label>Purok</label>
               <input type="text" name="purok" placeholder={user?.purok} defaultValue={user?.purok} />
             </div>
+          </div>
+
+          <div className={styles.row}>
             <div>
               <label>Profession</label>
               <input type="text" name="profession" placeholder={user?.profession} defaultValue={user?.profession} />
             </div>
-          </div>
-
-          <div className={styles.row}>
             <div>
               <label>Birthday</label>
               <input 

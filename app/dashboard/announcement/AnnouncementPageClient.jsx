@@ -34,7 +34,7 @@ const AnnouncementPageClient = ({ announcements, count }) => {
       <table className={styles.table}>
         <thead>
           <tr>
-            <td>ID</td>
+            <td>Row Number</td>
             <td>Created By</td>
             <td>Title</td>
             <td>Description</td>

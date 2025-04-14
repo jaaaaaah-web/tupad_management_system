@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    extension: {
+      type: String,
+      required: false,
+    },
     cpNumber: {
       type: String,
       required: true,
@@ -89,13 +93,17 @@ const transactionsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    extension: {
+      type: String,
+      required: false,
+    },
     beneficiaries: {
       type: String,
       required: false, // Making this optional since we're now using the separate name fields
       default: function() {
         // Create a default value based on the name fields if they exist
         if (this.lastName || this.firstName) {
-          return `${this.lastName || ''}, ${this.firstName || ''} ${this.middleName || ''}`.trim();
+          return `${this.lastName || ''}, ${this.firstName || ''} ${this.middleName || ''}${this.extension ? ' ' + this.extension : ''}`.trim();
         }
         return '';
       }

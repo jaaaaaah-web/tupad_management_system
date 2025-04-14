@@ -18,11 +18,12 @@ const CreateTransactionPage = () => {
     
     // Get name values
     const lastName = formData.get("lastName") || "";
-    const middleName = formData.get("middleName") || "";
     const firstName = formData.get("firstName") || "";
+    const middleName = formData.get("middleName") || "";
+    const extension = formData.get("extension") || "";
     
-    // Create beneficiaries field value
-    const beneficiaries = `${lastName}, ${firstName} ${middleName}`.trim();
+    // Create beneficiaries field value with the new format
+    const beneficiaries = `${lastName}, ${firstName} ${middleName}${extension ? ' ' + extension : ''}`.trim();
     
     // Set the hidden beneficiaries field
     formData.set("beneficiaries", beneficiaries);
@@ -60,6 +61,10 @@ const CreateTransactionPage = () => {
             <div>
               <label>First Name</label>
               <input type="text" name="firstName" placeholder="Enter first name" required />
+            </div>
+            <div>
+              <label>Extension</label>
+              <input type="text" name="extension" placeholder="Enter extension (optional)" />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <label>Status</label>

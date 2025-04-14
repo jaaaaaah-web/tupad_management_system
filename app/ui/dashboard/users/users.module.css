@@ -48,6 +48,9 @@ cursor: pointer;
 .view{
   background-color: teal;
 }
+.edit{
+  background-color: #2980b9;
+}
 .delete{
   background-color: crimson ;
 }

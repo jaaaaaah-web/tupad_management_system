@@ -24,23 +24,27 @@ const AddUserPage = () => {
               <input type="text" placeholder="Last Name" name="lastName" required className={styles.transparentInput} />
             </div>
             <div>
-              <label>CP Number</label>
-              <input type="text" placeholder="CP Number" name="cpNumber" required className={styles.transparentInput} />
+              <label>Extension</label>
+              <input type="text" placeholder="Jr., Sr., III, etc." name="extension" className={styles.transparentInput} />
             </div>
           </div>
 
           <div className={styles.row}>
+            <div>
+              <label>CP Number</label>
+              <input type="text" placeholder="CP Number" name="cpNumber" required className={styles.transparentInput} />
+            </div>
             <div>
               <label>Purok</label>
               <input type="text" placeholder="Purok" name="purok" required className={styles.transparentInput} />
             </div>
+          </div>
+
+          <div className={styles.row}>
             <div>
               <label>Profession</label>
               <input type="text" placeholder="Profession" name="profession" required className={styles.transparentInput} />
             </div>
-          </div>
-
-          <div className={styles.row}>
             <div>
               <label>Birthday</label>
               <input 

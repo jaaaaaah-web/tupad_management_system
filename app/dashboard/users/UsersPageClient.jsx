@@ -40,13 +40,14 @@ const UsersPageClient = ({ users, count }) => {
       <table className={styles.table}>
         <thead>
           <tr>
-            <td>ID</td>
+            <td>Row Number</td>
             <td>Last Name</td>
             <td>First Name</td>
             <td>Middle Name</td>
+            <td>Extension</td>
             <td>CP Number</td>
             <td>Purok</td>
-            <td>Birthday</td>
+            <td>Date of Birth</td>
             <td>Profession</td>
             <td>Created At</td>
             <td>Action</td>
@@ -59,6 +60,7 @@ const UsersPageClient = ({ users, count }) => {
               <td>{user.lastName}</td>
               <td>{user.firstName}</td>
               <td>{user.middleName || "—"}</td>
+              <td>{user.extension || "—"}</td>
               <td>{user.cpNumber}</td>
               <td>{user.purok}</td>
               <td>{formatDate(user.birthday)}</td>

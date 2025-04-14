@@ -81,15 +81,14 @@ async function saveProfileImage(file) {
 }
 
 export const addUser = async (formData) => {
+  const formValues = Object.fromEntries(formData);
+  const { firstName, middleName, lastName, extension, cpNumber, purok, birthday, profession } = formValues;
+  
   try {
-    await connectToDB(); // Ensure DB connection
-
-    // Extract values from form
-    const formValues = Object.fromEntries(formData);
-    const { firstName, middleName, lastName, cpNumber, purok, birthday, profession } = formValues;
-
-    // More robust way to calculate next row number
-    let nextRowNumber = 1; // Default to 1 if no users exist
+    await connectToDB();
+    
+    // Calculate next row number
+    let nextRowNumber = 1;
     try {
       const lastUser = await User.findOne({}, {}, { sort: { rowNumber: -1 } });
       if (lastUser && lastUser.rowNumber && typeof lastUser.rowNumber === 'number') {
@@ -114,6 +113,7 @@ export const addUser = async (formData) => {
       firstName,
       middleName,
       lastName,
+      extension,
       cpNumber,
       purok,
       birthday: new Date(birthday),
@@ -136,7 +136,7 @@ export const addUser = async (formData) => {
 
 export const updateUser = async (formData) => {
   const formValues = Object.fromEntries(formData);
-  const { id, firstName, middleName, lastName, cpNumber, purok, birthday, profession } = formValues;
+  const { id, firstName, middleName, lastName, extension, cpNumber, purok, birthday, profession } = formValues;
 
   try {
     await connectToDB();
@@ -145,6 +145,7 @@ export const updateUser = async (formData) => {
       firstName,
       middleName,
       lastName,
+      extension,
       cpNumber,
       purok,
       birthday: birthday ? new Date(birthday) : undefined,
@@ -244,7 +245,7 @@ export const deleteAnnouncements = async (formData) => {
 }
 
 export const addTransactions = async (formData) => {
-  const { cb, lastName, middleName, firstName, status, amount } = Object.fromEntries(formData);
+  const { cb, lastName, middleName, firstName, extension, status, amount } = Object.fromEntries(formData);
 
   try {
     await connectToDB();
@@ -266,8 +267,8 @@ export const addTransactions = async (formData) => {
       nextRowNumber = 1;
     }
 
-    // Combine the name fields to create the beneficiaries field
-    const beneficiaries = `${lastName || ''}, ${firstName || ''} ${middleName || ''}`.trim();
+    // Combine the name fields to create the beneficiaries field with extension
+    const beneficiaries = `${lastName || ''}, ${firstName || ''} ${middleName || ''}${extension ? ' ' + extension : ''}`.trim();
 
     const newTransactions = new Transactions({
       rowNumber: nextRowNumber,
@@ -275,6 +276,7 @@ export const addTransactions = async (formData) => {
       lastName,
       middleName,
       firstName,
+      extension,
       beneficiaries, // Explicitly set the beneficiaries field
       status,
       amount,
@@ -290,19 +292,20 @@ export const addTransactions = async (formData) => {
 }
 
 export const updateTransactions = async (formData) => {
-  const { id, cb, lastName, middleName, firstName, status, amount } = Object.fromEntries(formData);
+  const { id, cb, lastName, middleName, firstName, extension, status, amount } = Object.fromEntries(formData);
 
   try {
     await connectToDB();
     
-    // Combine the name fields to create the beneficiaries field
-    const beneficiaries = `${lastName || ''}, ${firstName || ''} ${middleName || ''}`.trim();
+    // Combine the name fields to create the beneficiaries field with extension
+    const beneficiaries = `${lastName || ''}, ${firstName || ''} ${middleName || ''}${extension ? ' ' + extension : ''}`.trim();
     
     const updateFields = {
       cb, 
       lastName,
       middleName,
       firstName,
+      extension,
       beneficiaries, // Add the combined beneficiaries field
       status, 
       amount

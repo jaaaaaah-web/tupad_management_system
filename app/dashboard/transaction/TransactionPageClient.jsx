@@ -34,10 +34,11 @@ const TransactionPageClient = ({ transactions, count }) => {
       <table className={styles.table}>
         <thead>
           <tr>
-            <td>ID</td>
+            <td>Row Number</td>
             <td>Last Name</td>
-            <td>Middle Name</td>
             <td>First Name</td>
+            <td>Middle Name</td>
+            <td>Extension</td>
             <td>Status</td>
             <td>Amount</td>
             <td>Created By</td>
@@ -50,8 +51,9 @@ const TransactionPageClient = ({ transactions, count }) => {
             <tr key={transaction.id}>
               <td>{transaction.rowNumber}</td>
               <td>{transaction.lastName}</td>
-              <td>{transaction.middleName || "-"}</td>
               <td>{transaction.firstName}</td>
+              <td>{transaction.middleName || "-"}</td>
+              <td>{transaction.extension || "-"}</td>
               <td>
                 <span className={`${styles.status} ${
                   transaction.status === "pending" 
@@ -73,7 +75,7 @@ const TransactionPageClient = ({ transactions, count }) => {
                   <Link href={`/dashboard/transaction/${transaction.id}`}>
                     <button className={`${styles.button} ${styles.view}`}>View</button>
                   </Link>
-                 
+                  
                 </div>
               </td>
             </tr>

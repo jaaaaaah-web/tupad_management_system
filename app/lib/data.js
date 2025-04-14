@@ -156,6 +156,7 @@ export const fetchTransaction = async (q, page, sort, direction, rowCount = "all
         { lastName: { $regex: regex } },
         { middleName: { $regex: regex } },
         { firstName: { $regex: regex } },
+        { extension: { $regex: regex } },
         { status: { $regex: regex } }
       ]
     });
@@ -174,6 +175,7 @@ export const fetchTransaction = async (q, page, sort, direction, rowCount = "all
         { lastName: { $regex: regex } },
         { middleName: { $regex: regex } },
         { firstName: { $regex: regex } },
+        { extension: { $regex: regex } },
         { status: { $regex: regex } }
       ]
     }).sort(sortObj);
@@ -214,6 +216,7 @@ export const fetchTransactions = async (id) => {
         lastName: '',
         firstName: '',
         middleName: '',
+        extension: '',
         beneficiaries: '',
         status: 'Pending',
         amount: 0,
@@ -232,6 +235,7 @@ export const fetchTransactions = async (id) => {
         lastName: '',
         firstName: '',
         middleName: '',
+        extension: '',
         beneficiaries: '',
         status: 'Pending',
         amount: 0,
@@ -254,6 +258,7 @@ export const fetchTransactions = async (id) => {
       lastName: '',
       firstName: '',
       middleName: '',
+      extension: '',
       beneficiaries: '',
       status: 'Pending',
       amount: 0,

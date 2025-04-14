@@ -28,12 +28,16 @@ const SingleTransactionPage = async ({params}) => {
               <input type="text" name="lastName" defaultValue={transaction.lastName} />
             </div>
             <div>
+              <label>First Name</label>
+              <input type="text" name="firstName" defaultValue={transaction.firstName} />
+            </div>
+            <div>
               <label>Middle Name</label>
               <input type="text" name="middleName" defaultValue={transaction.middleName || ''} />
             </div>
             <div>
-              <label>First Name</label>
-              <input type="text" name="firstName" defaultValue={transaction.firstName} />
+              <label>Extension</label>
+              <input type="text" name="extension" defaultValue={transaction.extension || ''} />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <label>Status</label>
@@ -75,7 +79,7 @@ const SingleTransactionPage = async ({params}) => {
           <tbody>
             <tr>
               <td>{transaction.id}</td>
-              <td>{`${transaction.lastName || ''}, ${transaction.firstName || ''} ${transaction.middleName || ''}`}</td>
+              <td>{`${transaction.lastName || ''}, ${transaction.firstName || ''} ${transaction.middleName || ''}${transaction.extension ? ' ' + transaction.extension : ''}`}</td>
               <td>{transaction.cb}</td>
               <td>₱{transaction.amount}</td>
               <td>
@@ -101,7 +105,7 @@ const SingleTransactionPage = async ({params}) => {
             <strong>Transaction ID:</strong> {transaction.id}
           </div>
           <div className={styles.summaryItem}>
-            <strong>Beneficiary:</strong> {`${transaction.lastName || ''}, ${transaction.firstName || ''} ${transaction.middleName || ''}`}
+            <strong>Beneficiary:</strong> {`${transaction.lastName || ''}, ${transaction.firstName || ''} ${transaction.middleName || ''}${transaction.extension ? ' ' + transaction.extension : ''}`}
           </div>
           <div className={styles.summaryItem}>
             <strong>Created By:</strong> {transaction.cb}
