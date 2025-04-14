@@ -60,3 +60,13 @@
 .yearFilter option {
   background-color: var(--bgSoft);
 }
+
+.lastUpdated {
+  font-size: 10px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}

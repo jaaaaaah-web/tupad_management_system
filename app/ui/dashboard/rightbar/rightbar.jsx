@@ -12,7 +12,14 @@ const Rightbar = () => {
   const fetchBeneficiariesByPurok = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/chart-data');
+      const response = await fetch('/api/chart-data', {
+        // Add cache-busting headers to prevent browser caching
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
       if (response.ok) {
         const data = await response.json();
         // Calculate total for each purok using the age group data
@@ -39,12 +46,21 @@ const Rightbar = () => {
     }
   };
 
-  // Initial data fetch
+  // Initial data fetch and setup polling
   useEffect(() => {
+    // Fetch data immediately
     fetchBeneficiariesByPurok();
+    
+    // Set up polling interval (every 40 seconds)
+    const intervalId = setInterval(() => {
+      fetchBeneficiariesByPurok();
+    }, 40000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
-  // Function to refresh data
+  // Function to refresh data manually
   const handleRefresh = () => {
     fetchBeneficiariesByPurok();
   };

@@ -71,7 +71,10 @@ const UsersPageClient = ({ users, count }) => {
                   <Link href={`/dashboard/users/${user._id.toString()}`} >
                     <button className={`${styles.button} ${styles.view}`}>View</button>
                   </Link>
-                 
+                  <form action={deleteUser}>
+                <input type="hidden" name="id" value={user.id} />
+              <button className={`${styles.button} ${styles.delete}`}>Delete</button>
+              </form>
                 </div>
               </td>
             </tr>

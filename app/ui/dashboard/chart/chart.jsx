@@ -10,6 +10,7 @@ import {
   YAxis,
   Legend
 } from "recharts";
+import { MdRefresh } from "react-icons/md";
 
 // Color palette for different age groups
 const ageColors = {
@@ -24,27 +25,50 @@ const Chart = () => {
   const [data, setData] = useState([]);
   const [ageGroups, setAgeGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  const fetchChartData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/chart-data', {
+        // Add cache-busting query parameter to prevent browser caching
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      if (response.ok) {
+        const chartData = await response.json();
+        setData(chartData.data || []);
+        setAgeGroups(chartData.ageGroups || []);
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error("Failed to fetch chart data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/chart-data');
-        if (response.ok) {
-          const chartData = await response.json();
-          setData(chartData.data || []);
-          setAgeGroups(chartData.ageGroups || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch chart data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Initial data fetch
+    fetchChartData();
+    
+    // Set up polling interval (every 45 seconds)
+    const intervalId = setInterval(() => {
+      fetchChartData();
+    }, 45000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
-  if (loading) {
+  const handleRefresh = () => {
+    fetchChartData();
+  };
+
+  if (loading && data.length === 0) {
     return <div className={styles.container}>Loading chart data...</div>;
   }
 
@@ -75,56 +99,68 @@ const Chart = () => {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Age Distribution by Purok</h2>
-      <div className={styles.chartDescription}>
-        <p>Distribution of beneficiaries by age groups across different puroks</p>
+      <div className={styles.chartHeader}>
+        <div>
+          <h2 className={styles.title}>Age Distribution by Purok</h2>
+          <div className={styles.chartDescription}>
+            <p>Distribution of beneficiaries by age groups across different puroks</p>
+          </div>
+        </div>
+        <div className={styles.chartControls}>
+          <button onClick={handleRefresh} className={styles.refreshButton} title="Refresh data">
+            <MdRefresh />
+          </button>
+          <div className={styles.lastUpdated}>
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </div>
+        </div>
       </div>
+      
       <ResponsiveContainer width="100%" height={400}>
-  <BarChart 
-    data={data}
-    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-  >
-    {/* Removed CartesianGrid to eliminate the background grid lines */}
-    <XAxis 
-      dataKey="name" 
-      stroke="#ffffff" 
-      tick={{ fill: '#ffffff' }}
-      label={{ 
-        value: 'Purok', 
-        position: 'insideBottom', 
-        offset: -5,
-        fill: '#ffffff'
-      }}
-    />
-    <YAxis 
-      stroke="#ffffff" 
-      tick={{ fill: '#ffffff' }}
-      label={{ 
-        value: 'Number of Beneficiaries', 
-        angle: -90, 
-        position: 'insideLeft',
-        fill: '#ffffff'
-      }}
-    />
-    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-    <Legend 
-      verticalAlign="top" 
-      wrapperStyle={{ paddingBottom: 20 }}
-      formatter={(value) => <span style={{ color: '#ffffff' }}>{value}</span>}
-    />
-    {ageGroups.map((ageGroup, index) => (
-      <Bar 
-        key={ageGroup}
-        dataKey={ageGroup} 
-        name={`${ageGroup} years`}
-        fill={ageColors[ageGroup] || `hsl(${index * 60}, 70%, 60%)`} 
-        stackId={false}
-        radius={[4, 4, 0, 0]}
-      />
-    ))}
-  </BarChart>
-</ResponsiveContainer>
-
+        <BarChart 
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+        >
+          {/* Removed CartesianGrid to eliminate the background grid lines */}
+          <XAxis 
+            dataKey="name" 
+            stroke="#ffffff" 
+            tick={{ fill: '#ffffff' }}
+            label={{ 
+              value: 'Purok', 
+              position: 'insideBottom', 
+              offset: -5,
+              fill: '#ffffff'
+            }}
+          />
+          <YAxis 
+            stroke="#ffffff" 
+            tick={{ fill: '#ffffff' }}
+            label={{ 
+              value: 'Number of Beneficiaries', 
+              angle: -90, 
+              position: 'insideLeft',
+              fill: '#ffffff'
+            }}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+          <Legend 
+            verticalAlign="top" 
+            wrapperStyle={{ paddingBottom: 20 }}
+            formatter={(value) => <span style={{ color: '#ffffff' }}>{value}</span>}
+          />
+          {ageGroups.map((ageGroup, index) => (
+            <Bar 
+              key={ageGroup}
+              dataKey={ageGroup} 
+              name={`${ageGroup} years`}
+              fill={ageColors[ageGroup] || `hsl(${index * 60}, 70%, 60%)`} 
+              stackId={false}
+              radius={[4, 4, 0, 0]}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 };

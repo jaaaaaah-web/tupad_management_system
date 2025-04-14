@@ -75,7 +75,10 @@ const TransactionPageClient = ({ transactions, count }) => {
                   <Link href={`/dashboard/transaction/${transaction.id}`}>
                     <button className={`${styles.button} ${styles.view}`}>View</button>
                   </Link>
-                  
+                  <form action={deleteTransactions}>
+                  <input type="hidden" name="id" value={transaction.id} />
+                  <button className={`${styles.button} ${styles.delete}`}>Delete</button>
+                  </form>
                 </div>
               </td>
             </tr>

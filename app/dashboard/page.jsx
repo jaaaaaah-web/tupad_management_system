@@ -1,5 +1,4 @@
 import React from 'react';
-import { Suspense } from 'react';
 import Card from '../ui/dashboard/card/card';
 import styles from "../ui/dashboard/dashboard.module.css";
 import Rightbar from '../ui/dashboard/rightbar/rightbar';
@@ -8,9 +7,7 @@ import Chart from '../ui/dashboard/chart/chart';
 import DashboardClient from './DashboardClient';
 import { fetchTotalPayoutAmount, fetchTransactionYears } from '@/app/lib/data';
 
-// Loading components for Suspense
-const CardLoading = () => <div className={styles.loadingCard}>Loading...</div>;
-const TransactionsLoading = () => <div className={styles.loadingTransactions}>Loading transactions...</div>;
+// No longer need Suspense wrappers since components handle their own loading states
 
 const Dashboard = async () => {
   // Fetch the initial total payout amount (all years)
@@ -21,12 +18,8 @@ const Dashboard = async () => {
   
   return (
     <DashboardClient initialPayoutAmount={initialPayoutAmount} availableYears={availableYears}>
-      <Suspense fallback={<CardLoading />}>
-        <Card/>
-      </Suspense>
-      <Suspense fallback={<TransactionsLoading />}>
-        <Transactions/>
-      </Suspense>
+      <Card/>
+      <Transactions/>
       <Chart/>
       <Rightbar/>
     </DashboardClient>

@@ -1,9 +1,9 @@
 "use client";
 import React from 'react';
 import styles from './card.module.css';
-import { MdAttachMoney } from 'react-icons/md';
+import { MdAttachMoney, MdRefresh } from 'react-icons/md';
 
-const PayoutCard = ({ totalAmount, years, onYearChange, selectedYear }) => {
+const PayoutCard = ({ totalAmount, years, onYearChange, selectedYear, lastUpdated }) => {
   // Format the amount as currency
   const formattedAmount = new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -39,6 +39,11 @@ const PayoutCard = ({ totalAmount, years, onYearChange, selectedYear }) => {
           <span className={styles.detail}>
             {selectedYear && selectedYear !== 'all' ? `For year ${selectedYear}` : 'All time'}
           </span>
+          {lastUpdated && (
+            <span className={styles.lastUpdated}>
+              <MdRefresh size={12} /> Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
         </div>
       </div>
     </div>
