@@ -12,7 +12,7 @@ const Card = () => {
     loading, 
     lastUpdated, 
     refetch: handleRefresh 
-  } = useRealtimeData('/api/dashboard/beneficiary-count', {}, 15000);
+  } = useRealtimeData('/api/dashboard/beneficiary-count', {}, 15000, true); // Added true for immediate fetching
   
   // Extract count from the response data
   const count = data?.count || 0;

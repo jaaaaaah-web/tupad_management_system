@@ -1,6 +1,6 @@
 "use client";
 import styles from "./chart.module.css";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -23,26 +23,19 @@ const ageColors = {
 };
 
 const Chart = () => {
-  // Replace polling with the new useRealtimeData hook
+  // Use the useRealtimeData hook with immediate fetching enabled
   const { 
     data: chartData, 
     loading, 
     lastUpdated, 
     refetch: handleRefresh 
-  } = useRealtimeData('/api/chart-data', {}, 20000); // 20 seconds polling interval
+  } = useRealtimeData('/api/chart-data', {}, 20000, true); // 20 seconds polling interval, fetch immediately
   
-  // Derived state from chartData
-  const [data, setData] = useState([]);
-  const [ageGroups, setAgeGroups] = useState([]);
-  
-  // Update derived state when chartData changes
-  useEffect(() => {
-    if (chartData) {
-      setData(chartData.data || []);
-      setAgeGroups(chartData.ageGroups || []);
-    }
-  }, [chartData]);
+  // Use useMemo instead of useState + useEffect for derived data
+  const data = useMemo(() => chartData?.data || [], [chartData]);
+  const ageGroups = useMemo(() => chartData?.ageGroups || [], [chartData]);
 
+  // Show loading state
   if (loading && data.length === 0) {
     return <div className={styles.container}>Loading chart data...</div>;
   }
@@ -86,7 +79,7 @@ const Chart = () => {
             <MdRefresh />
           </button>
           <div className={styles.lastUpdated}>
-            Last updated: {formatLastUpdated(lastUpdated)}
+            Last updated: {formatLastUpdated(lastUpdated || new Date())}
           </div>
         </div>
       </div>
@@ -138,6 +131,6 @@ const Chart = () => {
       </ResponsiveContainer>
     </div>
   );
-};
+}
 
 export default Chart;

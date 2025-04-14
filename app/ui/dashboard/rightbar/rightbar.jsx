@@ -11,7 +11,7 @@ const Rightbar = () => {
     loading, 
     lastUpdated, 
     refetch: handleRefresh 
-  } = useRealtimeData('/api/chart-data', {}, 18000); // 18 seconds polling interval
+  } = useRealtimeData('/api/chart-data', {}, 18000, true); // 18 seconds polling interval, fetch immediately
   
   // Process the data for display
   const purokData = React.useMemo(() => {
