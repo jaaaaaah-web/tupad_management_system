@@ -14,7 +14,11 @@ export async function GET() {
           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
           'Surrogate-Control': 'no-store',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          // Special Vercel header to bypass edge caching
+          'x-vercel-cache-control-bypass': process.env.VERCEL_URL ? 'true' : undefined,
+          // Force timestamp response header to prevent browser caching
+          'x-timestamp': new Date().getTime().toString()
         }
       }
     );

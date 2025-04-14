@@ -16,7 +16,7 @@ export const useRealtimeData = (url, options = {}, pollingInterval = 15000, fetc
   // State for tracking errors
   const [error, setError] = useState(null);
   // State for tracking when data was last updated
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Use refs to hold the latest values of props that might change
   // This prevents stale closures in the fetch function
@@ -40,26 +40,31 @@ export const useRealtimeData = (url, options = {}, pollingInterval = 15000, fetc
       // Get the current URL from the ref
       const currentUrl = urlRef.current;
       
-      // Add a timestamp parameter to bust cache
-      const timestamp = new Date().getTime();
+      // Add a timestamp parameter to bust cache - with microsecond precision
+      const timestamp = new Date().getTime() + Math.floor(Math.random() * 1000);
       const cacheBustUrl = currentUrl.includes('?') 
         ? `${currentUrl}&_=${timestamp}` 
         : `${currentUrl}?_=${timestamp}`;
       
-      // Add cache control headers
+      // Add cache control headers with Vercel-specific additions
       const headers = {
         ...optionsRef.current.headers,
-        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        // Special header to bypass Vercel's edge cache
+        'x-vercel-cache-control-bypass': 'true'
       };
       
-      // Make the request
+      // Make the request with stronger cache-busting settings
       const response = await fetch(cacheBustUrl, {
         ...optionsRef.current,
         headers,
         cache: 'no-store',
-        next: { revalidate: 0 }
+        next: { revalidate: 0 },
+        // Force a new request every time
+        mode: 'cors',
+        credentials: 'same-origin'
       });
       
       if (!response.ok) {
@@ -80,15 +85,13 @@ export const useRealtimeData = (url, options = {}, pollingInterval = 15000, fetc
     }
   }, []); // Empty dependency array because we use refs for changing values
   
-  // Set up polling effect
+  // Set up polling effect - IMPROVED to ensure it runs on mount AND periodically
   useEffect(() => {
+    // Always fetch immediately for the problematic components
+    fetchData();
+    
     // If polling is disabled, don't set up the interval
     if (intervalRef.current <= 0) return;
-    
-    // Fetch immediately if specified
-    if (fetchImmediately) {
-      fetchData();
-    }
     
     // Set up interval for polling
     const intervalId = setInterval(() => {
@@ -99,7 +102,7 @@ export const useRealtimeData = (url, options = {}, pollingInterval = 15000, fetc
     return () => {
       clearInterval(intervalId);
     };
-  }, [fetchData, fetchImmediately]);
+  }, [fetchData]); // Only depend on fetchData
   
   // Return all necessary data and functions
   return {
@@ -128,33 +131,36 @@ export const formatLastUpdated = (date) => {
 };
 
 /**
- * Legacy function for backward compatibility with components not yet migrated
- * to the new useRealtimeData hook
- * @deprecated Use useRealtimeData hook instead
+ * Enhanced fetchRealtimeData function that properly bypasses all caching layers
  */
 export const fetchRealtimeData = async (url, options = {}) => {
   try {
-    // Generate a timestamp to bust cache on every request
-    const timestamp = new Date().getTime();
+    // Generate a timestamp with microsecond precision to bust cache more effectively
+    const timestamp = new Date().getTime() + Math.floor(Math.random() * 1000);
     const cacheBustUrl = url.includes('?') 
       ? `${url}&_=${timestamp}` 
       : `${url}?_=${timestamp}`;
     
-    // Always include cache-busting headers
+    // Enhanced cache-busting headers
     const headers = {
       ...options.headers,
-      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
       'Pragma': 'no-cache',
-      'Expires': '0'
+      'Expires': '0',
+      // Special header to bypass Vercel's edge cache
+      'x-vercel-cache-control-bypass': 'true'
     };
     
-    // Make the request with cache-busting settings
+    // Make the request with enhanced cache-busting settings
     const response = await fetch(cacheBustUrl, {
       ...options,
       headers,
-      // Ensure we use no-store cache policy
+      // Stronger cache prevention
       cache: 'no-store',
-      next: { revalidate: 0 }
+      next: { revalidate: 0 },
+      // Force a new request every time
+      mode: 'cors',
+      credentials: 'same-origin'
     });
     
     if (!response.ok) {
@@ -173,7 +179,12 @@ export const fetchRealtimeData = async (url, options = {}) => {
  * @deprecated Use useRealtimeData hook instead
  */
 export const setupPolling = (fetchFunction, interval = 15000, callback) => {
-  // Don't call fetchFunction immediately
+  // Call fetchFunction immediately to ensure data loads right away
+  try {
+    fetchFunction();
+  } catch (error) {
+    console.error('Error in initial fetch for polling:', error);
+  }
   
   // Set up interval
   const intervalId = setInterval(() => {
