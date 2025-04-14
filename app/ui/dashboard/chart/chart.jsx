@@ -1,6 +1,6 @@
 "use client";
+import React from "react";
 import styles from "./chart.module.css";
-import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -11,7 +11,7 @@ import {
   Legend
 } from "recharts";
 import { MdRefresh } from "react-icons/md";
-import { formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { useRouter } from "next/navigation";
 
 // Color palette for different age groups
 const ageColors = {
@@ -23,25 +23,37 @@ const ageColors = {
 };
 
 const Chart = () => {
-  const [data, setData] = useState([]);
-  const [ageGroups, setAgeGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [data, setData] = React.useState([]);
+  const [ageGroups, setAgeGroups] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [lastUpdated, setLastUpdated] = React.useState(null);
+  const intervalRef = React.useRef(null);
+  const router = useRouter();
 
-  // Function to fetch chart data directly without any hooks
-  const fetchChartData = async () => {
+  // Format date for display
+  const formatLastUpdated = (date) => {
+    if (!date) return 'Never';
+    
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+  };
+
+  // Fetch data function using useCallback to ensure stability
+  const fetchData = React.useCallback(async () => {
     try {
       setLoading(true);
-      // Add timestamp to URL to prevent caching
-      const timestamp = new Date().getTime() + Math.floor(Math.random() * 1000);
-      const response = await fetch(`/api/chart-data?_=${timestamp}`, {
+      // Generate a unique timestamp
+      const timestamp = Date.now();
+      const response = await fetch(`/api/chart-data?t=${timestamp}`, {
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'x-vercel-cache-control-bypass': 'true'
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
-        cache: 'no-store',
         next: { revalidate: 0 }
       });
       
@@ -58,26 +70,32 @@ const Chart = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchChartData();
   }, []);
 
-  // Set up polling interval
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      fetchChartData();
+  // Handle refresh button click
+  const handleRefresh = () => {
+    fetchData();
+    // Force router refresh
+    router.refresh();
+  };
+
+  // Set up initial fetch and polling
+  React.useEffect(() => {
+    // Fetch initial data
+    fetchData();
+    
+    // Set up interval for polling
+    intervalRef.current = setInterval(() => {
+      fetchData();
     }, 20000); // Poll every 20 seconds
     
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // Handle manual refresh
-  const handleRefresh = () => {
-    fetchChartData();
-  };
+    // Clean up on unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [fetchData]);
 
   // Show loading state
   if (loading && data.length === 0) {
@@ -98,7 +116,7 @@ const Chart = () => {
           
           <div className={styles.tooltipDetails}>
             {payload.map((entry, index) => (
-              <p key={index} style={{ color: entry.color }}>
+              <p key={`tooltip-detail-${index}`} style={{ color: entry.color }}>
                 {`${entry.name}: ${entry.value} (${Math.round(entry.value / totalBeneficiaries * 100)}%)`}
               </p>
             ))}
@@ -123,7 +141,7 @@ const Chart = () => {
             <MdRefresh />
           </button>
           <div className={styles.lastUpdated}>
-            Last updated: {formatLastUpdated(lastUpdated || new Date())}
+            Last updated: {formatLastUpdated(lastUpdated)}
           </div>
         </div>
       </div>
@@ -161,12 +179,12 @@ const Chart = () => {
             wrapperStyle={{ paddingBottom: 20 }}
             formatter={(value) => <span style={{ color: '#ffffff' }}>{value}</span>}
           />
-          {ageGroups.map((ageGroup, index) => (
+          {ageGroups.map((ageGroup) => (
             <Bar 
-              key={ageGroup}
+              key={`age-group-${ageGroup}`}
               dataKey={ageGroup} 
               name={`${ageGroup} years`}
-              fill={ageColors[ageGroup] || `hsl(${index * 60}, 70%, 60%)`} 
+              fill={ageColors[ageGroup] || `hsl(${ageGroups.indexOf(ageGroup) * 60}, 70%, 60%)`} 
               stackId={false}
               radius={[4, 4, 0, 0]}
             />
@@ -175,6 +193,6 @@ const Chart = () => {
       </ResponsiveContainer>
     </div>
   );
-}
+};
 
 export default Chart;

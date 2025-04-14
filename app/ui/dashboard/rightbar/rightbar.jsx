@@ -1,28 +1,40 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from './rightbar.module.css';
 import { MdPeopleAlt, MdMap, MdRefresh } from 'react-icons/md';
-import { formatLastUpdated } from '@/app/lib/realtimeFetch';
+import { useRouter } from 'next/navigation';
 
 const Rightbar = () => {
-  const [chartData, setChartData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [chartData, setChartData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [lastUpdated, setLastUpdated] = React.useState(null);
+  const intervalRef = React.useRef(null);
+  const router = useRouter();
 
-  // Function to fetch chart data directly without any hooks
-  const fetchChartData = async () => {
+  // Format date for display
+  const formatLastUpdated = (date) => {
+    if (!date) return 'Never';
+    
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+  };
+
+  // Fetch data function
+  const fetchData = React.useCallback(async () => {
     try {
       setLoading(true);
-      // Add timestamp to URL to prevent caching
-      const timestamp = new Date().getTime() + Math.floor(Math.random() * 1000);
-      const response = await fetch(`/api/chart-data?_=${timestamp}`, {
+      // Generate a unique timestamp
+      const timestamp = Date.now();
+      const response = await fetch(`/api/chart-data?t=${timestamp}`, {
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'x-vercel-cache-control-bypass': 'true'
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
-        cache: 'no-store',
         next: { revalidate: 0 }
       });
       
@@ -38,26 +50,32 @@ const Rightbar = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchChartData();
   }, []);
 
-  // Set up polling interval
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      fetchChartData();
+  // Handle refresh button click
+  const handleRefresh = () => {
+    fetchData();
+    // Force router refresh
+    router.refresh();
+  };
+
+  // Set up initial fetch and polling
+  React.useEffect(() => {
+    // Fetch initial data
+    fetchData();
+    
+    // Set up interval for polling
+    intervalRef.current = setInterval(() => {
+      fetchData();
     }, 18000); // Poll every 18 seconds
     
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // Handle manual refresh
-  const handleRefresh = () => {
-    fetchChartData();
-  };
+    // Clean up on unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [fetchData]);
   
   // Process the data for display
   const purokData = React.useMemo(() => {
@@ -104,7 +122,7 @@ const Rightbar = () => {
         ) : (
           <div className={styles.purokList}>
             {purokData.map((purok, index) => (
-              <div key={purok.name} className={styles.purokItem}>
+              <div key={`purok-item-${purok.name}`} className={styles.purokItem}>
                 <div className={styles.purokInfo}>
                   <MdMap className={styles.purokIcon} />
                   <span className={styles.purokName}>{purok.name}</span>
@@ -131,6 +149,6 @@ const Rightbar = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Rightbar;
