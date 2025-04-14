@@ -100,6 +100,7 @@ const transactionsSchema = new mongoose.Schema(
     beneficiaries: {
       type: String,
       required: false, // Making this optional since we're now using the separate name fields
+      index: false, // Explicitly set to not be indexed uniquely
       default: function() {
         // Create a default value based on the name fields if they exist
         if (this.lastName || this.firstName) {
@@ -112,7 +113,7 @@ const transactionsSchema = new mongoose.Schema(
       type: String,
       enum: ["Pending", "Cancelled", "Done"],
       required: true,
-      default: " ", 
+      default: "Pending", 
     },
     amount: {
       type: String,
@@ -121,6 +122,9 @@ const transactionsSchema = new mongoose.Schema(
   },
   { timestamps: true } 
 );
+
+// Add this to remove any existing unique index on beneficiaries field
+transactionsSchema.index({ beneficiaries: 1 }, { unique: false });
 
 const NotificationSchema = new mongoose.Schema({
   recipientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
