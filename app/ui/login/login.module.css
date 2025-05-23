@@ -1,14 +1,17 @@
 .container {
   width: 100%;
   height: 100vh;
-  background-color: var(--bg);
+  background-image: url('/tupadbg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .form {
-  background-color: var(--bgSoft);
+  background-color: transparent;
   padding: 40px;
   border-radius: 12px;
   width: 420px;
@@ -17,7 +20,9 @@
   align-items: center;
   justify-content: center;
   gap: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .form h1 {
@@ -31,8 +36,8 @@
   padding: 12px;
   border: 2px solid white;
   border-radius: 5px;
-  background-color: var(--bgSoft);
-  color: white;
+  background-color: transparent;
+  color: black;
   font-size: 16px;
 }
 
@@ -54,7 +59,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: white;
+  color: green;
   cursor: pointer;
   font-size: 14px;
   padding: 5px;
@@ -127,5 +132,9 @@
   padding: 5px 10px;
   background: none;
   border: none;
-  color: white;
+  color: green;
+}
+
+.forgotPassword{
+  color: green;
 }
